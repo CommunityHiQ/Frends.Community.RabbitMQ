@@ -103,4 +103,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 
 | Version             | Changes                 |
 | ---------------------| ---------------------|
-| 1.0.2 | Initial version of SendEmail |
+| 1.0.2 | Initial version of RabbitMQ |
