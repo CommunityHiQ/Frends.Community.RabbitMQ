@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
@@ -44,10 +45,10 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns>JSON structure with message contents</returns>
-        public static string ReadMessage([PropertyTab]ReadInputParams inputParams)
+        public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("{\"messages\": [");
+            Output output = new Output();
+            
             var factory = new ConnectionFactory() { HostName = inputParams.HostName };
             using (var connection = factory.CreateConnection())
             {
@@ -64,18 +65,20 @@ namespace Frends.Community.RabbitMQ
                         var rcvMessage = channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck);
                         if (rcvMessage != null)
                         {
+                            output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
                             if (!inputParams.AutoAck)
                                 channel.BasicNack(rcvMessage.DeliveryTag, false, true);
 
-                            sb.AppendFormat("{{\"deliveryTag\":{0}, \"body\":\"{1} \", \"messageCount\":{2},\"routingKey\":\"{3}\" }},", rcvMessage.DeliveryTag, Convert.ToBase64String(rcvMessage.Body),rcvMessage.MessageCount,rcvMessage.RoutingKey);
-                        }                        
+                        }
+                        //break the loop if no more messagages are present
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
             }
-            sb.Remove(sb.Length - 1, 1);
-            sb.AppendLine("]}");
-
-            return sb.ToString();
+            return output;
         }
 
     }
