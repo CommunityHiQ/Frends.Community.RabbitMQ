@@ -41,28 +41,7 @@ Tasks
 
 ### Read message sample JSON
 
-{
-	"messages": [
-		{
-			"deliveryTag": 1,
-			"body": "AAAA ",
-			"messageCount": 2,
-			"routingKey": "sampleQueue"
-		},
-		{
-			"deliveryTag": 2,
-			"body": "AAEB ",
-			"messageCount": 1,
-			"routingKey": "sampleQueue"
-		},
-		{
-			"deliveryTag": 3,
-			"body": "AAQC ",
-			"messageCount": 0,
-			"routingKey": "sampleQueue"
-		}
-	]
-}
+{"Messages":[{"Data":"AAEC","MessagesCount":0,"DeliveryTag":1}]}
 
 # License
 
