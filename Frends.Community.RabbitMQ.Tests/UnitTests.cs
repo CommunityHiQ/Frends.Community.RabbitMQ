@@ -14,6 +14,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteRead()
         {
             Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
@@ -22,6 +23,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
         public void TestReadWithAck10()
         {
             for(int i  = 0; i < 10;i++)
@@ -31,6 +33,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
         public void TestReadNoAck10()
         {
             for (int i = 0; i < 10; i++)
