@@ -24,10 +24,10 @@ Tasks
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | byte[] | Data to be put in message body| new byte[]{1,2,3}|
-| Queue name | string | Name of the queue | sampleQueue |
-| Routing key | string | Routing key (as in RabbitMQ specification) | sampleQueue |
-| Subject | string | Subject of the message | Hello Jane |
-| Host | string | Address of the server hosting RabbitMQ | localhost |
+| QueueName | string | Name of the queue | sampleQueue |
+| RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ## ReadMessage
 
@@ -35,9 +35,25 @@ Tasks
 
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
-| Queue name | string | Name of the queue | sampleQueue |
-| Routing key | string | Routing key (as in RabbitMQ specification) | sampleQueue |
-| Read message count | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
+| QueueName | string | Name of the queue | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
+| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+
+### Output
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Messages | List<Message> | A list of message-objects | |
+
+### Message-object 
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | string | | |
+| MessageCount | uint | | |
+| DeliveryTag | ulong | | |
 
 ### Read message sample JSON
 
@@ -55,7 +71,7 @@ Clone a copy of the repo
 
 Restore dependencies
 
-`nuget restore frends.community.email`
+`nuget restore frends.community.rabbitmq`
 
 Rebuild the project
 
@@ -83,3 +99,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | Version             | Changes                 |
 | ---------------------| ---------------------|
 | 1.0.2 | Initial version of RabbitMQ |
+| 1.0.7 | Connect with URI added |
