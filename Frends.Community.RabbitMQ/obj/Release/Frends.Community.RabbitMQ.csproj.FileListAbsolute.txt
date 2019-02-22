@@ -1,0 +1,12 @@
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\Frends.Community.RabbitMQ.xml
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\Frends.Community.RabbitMQ.dll
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\Frends.Community.RabbitMQ.pdb
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\Microsoft.Diagnostics.Tracing.EventSource.dll
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\RabbitMQ.Client.dll
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\Microsoft.Diagnostics.Tracing.EventSource.xml
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\bin\Release\RabbitMQ.Client.xml
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\obj\Release\Frends.Community.RabbitMQ.csproj.CoreCompileInputs.cache
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\obj\Release\Frends.Community.RabbitMQ.csproj.CopyComplete
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\obj\Release\Frends.Community.RabbitMQ.dll
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\obj\Release\Frends.Community.RabbitMQ.pdb
+C:\Users\viljavi\Desktop\RabbitMQFinaali\Frends.Community.RabbitMQ\Frends.Community.RabbitMQ\obj\Release\Frends.Community.RabbitMQ.csprojAssemblyReference.cache

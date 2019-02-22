@@ -18,8 +18,18 @@ namespace Frends.Community.RabbitMQ
         public static bool WriteMessage([PropertyTab]WriteInputParams inputParams)
         {
 
-            var factory = new ConnectionFactory() { HostName = inputParams.HostName };
-            using (var connection = factory.CreateConnection())
+            var factory = new ConnectionFactory();
+
+			if (inputParams.ConnectWithURI)
+			{
+				factory.Uri = new Uri(inputParams.HostName);
+			}
+			else
+			{
+				factory.HostName = inputParams.HostName;
+			}
+
+			using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
@@ -48,9 +58,19 @@ namespace Frends.Community.RabbitMQ
         public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
             Output output = new Output();
-            
-            var factory = new ConnectionFactory() { HostName = inputParams.HostName };
-            using (var connection = factory.CreateConnection())
+
+			var factory = new ConnectionFactory();
+
+			if (inputParams.ConnectWithURI)
+			{
+				factory.Uri = new Uri(inputParams.HostName);
+			}
+			else
+			{
+				factory.HostName = inputParams.HostName;
+			}
+
+			using (var connection = factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
