@@ -32,7 +32,6 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         [DefaultValue(1)]
         [DisplayName(@"Read message count")]
-        [DisplayFormat(DataFormatString = "Text")]
         public int ReadMessageCount { get; set; }
         /// <summary>
         /// Acknowledge read messages. False to just peek last message
@@ -41,7 +40,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Auto ack")]
         [DisplayFormat(DataFormatString = "Text")]
         public bool AutoAck { get; set; }
-    }
+		/// <summary>
+		/// Use URI instead of a hostname
+		/// </summary>
+		[DefaultValue(false)]
+		[DisplayName(@"Use URI for connection")]
+		public bool ConnectWithURI { get; set; }
+	}
 
     /// <summary>
     /// Collection of write message parameters
@@ -74,7 +79,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
-    }
+		/// <summary>
+		/// Use URI instead of a hostname
+		/// </summary>
+		[DefaultValue(false)]
+		[DisplayName(@"Use URI for connection")]
+		public bool ConnectWithURI { get; set; }
+	}
 
     public class Output
     {
