@@ -40,13 +40,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Auto ack")]
         [DisplayFormat(DataFormatString = "Text")]
         public bool AutoAck { get; set; }
-		/// <summary>
-		/// Use URI instead of a hostname
-		/// </summary>
-		[DefaultValue(false)]
-		[DisplayName(@"Use URI for connection")]
-		public bool ConnectWithURI { get; set; }
-	}
+        /// <summary>
+        /// Use URI instead of a hostname
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"Use URI for connection")]
+        public bool ConnectWithURI { get; set; }
+    }
 
     /// <summary>
     /// Collection of write message parameters
@@ -79,13 +79,73 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
-		/// <summary>
-		/// Use URI instead of a hostname
+        /// <summary>
+        /// Use URI instead of a hostname
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"Use URI for connection")]
+        public bool ConnectWithURI { get; set; }
+        /// <summary>
+        /// True to declare queue when writing
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"True to declare queue before writing. False to not declare it")]
+        public bool Create { get; set; }
+        /// <summary>
+		/// Durable option when creating queue
 		/// </summary>
-		[DefaultValue(false)]
-		[DisplayName(@"Use URI for connection")]
-		public bool ConnectWithURI { get; set; }
-	}
+		[DefaultValue(true)]
+        [DisplayName(@"Set durable option when creating queue")]
+        public bool Durable { get; set; }
+    }
+
+    public class WriteInputParamsString
+    {
+        /// <summary>
+        /// Data payload in string. Will be internally converted to byte array using UTF8.Convert method
+        /// </summary>
+        [DisplayName(@"Data")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string Data { get; set; }
+        /// <summary>
+        /// Name of the queue
+        /// </summary>
+        [DefaultValue("sampleQueue")]
+        [DisplayName(@"Queue name")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string QueueName { get; set; }
+        /// <summary>
+        /// Routing key name
+        /// </summary>
+        [DefaultValue("sampleQueue")]
+        [DisplayName(@"Routing key")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string RoutingKey { get; set; }
+        /// <summary>
+        /// RabbitMQ host name
+        /// </summary>
+        [DisplayName(@"Host name")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string HostName { get; set; }
+        /// <summary>
+        /// Use URI instead of a hostname
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"Use URI for connection")]
+        public bool ConnectWithURI { get; set; }
+        /// <summary>
+        /// True to declare queue when writing
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"True to declare queue before writing. False to not declare it")]
+        public bool Create { get; set; }
+        /// <summary>
+		/// Durable option when creating queue
+		/// </summary>
+		[DefaultValue(true)]
+        [DisplayName(@"Set durable option when creating queue")]
+        public bool Durable { get; set; }
+    }
 
     public class Output
     {
@@ -95,9 +155,29 @@ namespace Frends.Community.RabbitMQ
 
     public class Message
     {
+        /// <summary>
+        /// Data in base64 format
+        /// </summary>
         public string Data { get; set; }
         public uint MessagesCount { get; set; }
         public ulong DeliveryTag { get; set; }
+    }
+
+    public class MessageString
+    {
+        /// <summary>
+        /// Data in UTF8 string converted from byte[] array
+        /// </summary>
+        public string Data { get; set; }
+        public uint MessagesCount { get; set; }
+        public ulong DeliveryTag { get; set; }
+    }
+
+
+
+    public class OutputString
+    {
+        public List<MessageString> Messages { get; set; } = new List<MessageString>();
     }
 
 }
