@@ -1,10 +1,12 @@
 # Frends.Community.RabbitMQ
-Frends task for operating on RabbitMQ queues. Supports reading and writing from queue. 
+Frends task for operating on RabbitMQ queues. Supports reading and writing from queue.
 
 - [Installing](#installing)
 - [Tasks](#tasks)
   - [Write Message](#writemessage)
+  - [Write Message String](#writemessagestring)
   - [Read Message](#readmessage)
+  - [Read Message String](#readmessagestring)
 - [License](#license)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -28,6 +30,20 @@ Tasks
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+| Create | bool | True to declare queue before writing | False to not declare it|
+| Durable | bool | Set durable option when creating queue |
+
+## WriteMessageString
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | string | Data to be put in message body| "abc"|
+| QueueName | string | Name of the queue | sampleQueue |
+| RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+| Create | bool | True to declare queue before writing | False to not declare it|
+| Durable | bool | Set durable option when creating queue |
+
 
 ## ReadMessage
 
@@ -51,13 +67,43 @@ Tasks
 
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
-| Data | string | | |
+| Data | string (base64 encoded byte[]) | | |
 | MessageCount | uint | | |
 | DeliveryTag | ulong | | |
 
 ### Read message sample JSON
 
 {"Messages":[{"Data":"AAEC","MessagesCount":0,"DeliveryTag":1}]}
+
+## ReadMessageString
+
+### Task Parameters
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| QueueName | string | Name of the queue | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
+| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+
+### OutputString
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Messages | List<MessageString> | A list of MessageString-objects | |
+
+
+### MessageString-object 
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | string (UTF8 converted byte[]) | | |
+| MessageCount | uint | | |
+| DeliveryTag | ulong | | |
+
+
+
 
 # License
 
@@ -100,3 +146,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | ---------------------| ---------------------|
 | 1.0.2 | Initial version of RabbitMQ |
 | 1.0.7 | Connect with URI added |
+| 1.0.8 | Add Create and Durable options in WriteMessage. Remove declaring queue in ReadMessage operation
