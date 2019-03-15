@@ -1,5 +1,5 @@
 # Frends.Community.RabbitMQ
-Frends task for operating on RabbitMQ queues. Supports reading and writing from queue. 
+Frends task for operating on RabbitMQ queues. Supports reading and writing from queue.
 
 - [Installing](#installing)
 - [Tasks](#tasks)
