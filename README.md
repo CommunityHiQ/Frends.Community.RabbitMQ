@@ -4,7 +4,9 @@ Frends task for operating on RabbitMQ queues. Supports reading and writing from 
 - [Installing](#installing)
 - [Tasks](#tasks)
   - [Write Message](#writemessage)
+  - [Write Message String](#writemessagestring)
   - [Read Message](#readmessage)
+  - [Read Message String](#readmessagestring)
 - [License](#license)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -55,6 +57,24 @@ Tasks
 | AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
+### Output
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Messages | List<Message> | A list of message-objects | |
+
+### Message-object 
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | string (base64 encoded byte[]) | | |
+| MessageCount | uint | | |
+| DeliveryTag | ulong | | |
+
+### Read message sample JSON
+
+{"Messages":[{"Data":"AAEC","MessagesCount":0,"DeliveryTag":1}]}
+
 ## ReadMessageString
 
 ### Task Parameters
@@ -67,26 +87,12 @@ Tasks
 | AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
-
-### Output
-
-| Property             | Type                 | Description                          | Example |
-| ---------------------| ---------------------| ------------------------------------ | ----- |
-| Messages | List<Message> | A list of message-objects | |
-
 ### OutputString
 
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Messages | List<MessageString> | A list of MessageString-objects | |
 
-### Message-object 
-
-| Property             | Type                 | Description                          | Example |
-| ---------------------| ---------------------| ------------------------------------ | ----- |
-| Data | string (base64 encoded byte[]) | | |
-| MessageCount | uint | | |
-| DeliveryTag | ulong | | |
 
 ### MessageString-object 
 
@@ -97,9 +103,7 @@ Tasks
 | DeliveryTag | ulong | | |
 
 
-### Read message sample JSON
 
-{"Messages":[{"Data":"AAEC","MessagesCount":0,"DeliveryTag":1}]}
 
 # License
 
