@@ -60,6 +60,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Expression")]
         public byte[] Data { get; set; }
         /// <summary>
+        /// Name of the exchange
+        /// </summary>
+        [DefaultValue("sampleExchange")]
+        [DisplayName(@"Exchange name")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string ExchangeName { get; set; }
+        /// <summary>
         /// Name of the queue
         /// </summary>
         [DefaultValue("sampleQueue")]

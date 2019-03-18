@@ -44,7 +44,7 @@ namespace Frends.Community.RabbitMQ
 
                     }
 
-                    channel.BasicPublish(exchange: "",
+                    channel.BasicPublish(exchange: inputParams.ExchangeName,
                                          routingKey: inputParams.RoutingKey,
                                          basicProperties: null,
                                          body: inputParams.Data);
