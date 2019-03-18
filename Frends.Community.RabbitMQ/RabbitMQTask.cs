@@ -114,14 +114,19 @@ namespace Frends.Community.RabbitMQ
                         if (rcvMessage != null)
                         {
                             output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
-                            if (!inputParams.AutoAck)
-                                channel.BasicNack(rcvMessage.DeliveryTag, false, true);
-
                         }
                         //break the loop if no more messagages are present
                         else
                         {
                             break;
+                        }
+                    }
+
+                    if (!inputParams.AutoAck)
+                    {
+                        foreach (var message in output.Messages)
+                        {
+                            channel.BasicNack(message.DeliveryTag, false, true);
                         }
                     }
                 }
