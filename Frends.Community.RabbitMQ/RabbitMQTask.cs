@@ -44,9 +44,16 @@ namespace Frends.Community.RabbitMQ
 
                     }
 
+                    IBasicProperties basicProperties = null;
+                    if (inputParams.Durable == true)
+                    {
+                        basicProperties = channel.CreateBasicProperties();
+                        basicProperties.Persistent = true;
+                    }
+
                     channel.BasicPublish(exchange: inputParams.ExchangeName,
                                          routingKey: inputParams.RoutingKey,
-                                         basicProperties: null,
+                                         basicProperties: basicProperties,
                                          body: inputParams.Data);
                 }
             }
