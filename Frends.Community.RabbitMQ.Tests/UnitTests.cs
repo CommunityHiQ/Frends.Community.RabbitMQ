@@ -161,5 +161,16 @@ namespace Frends.Community.RabbitMQ.Tests
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
-    }
+
+        [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
+        public void TestWriteReadStringToExchange()
+        {
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false });
+            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
+        }
+	}
 }

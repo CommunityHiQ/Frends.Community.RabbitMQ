@@ -69,6 +69,7 @@ namespace Frends.Community.RabbitMQ
                 Data = Encoding.UTF8.GetBytes(inputParams.Data),
                 Durable = inputParams.Durable,
                 HostName = inputParams.HostName,
+				ExchangeName = inputParams.ExchangeName,
                 QueueName = inputParams.QueueName,
                 RoutingKey = inputParams.RoutingKey
             };
