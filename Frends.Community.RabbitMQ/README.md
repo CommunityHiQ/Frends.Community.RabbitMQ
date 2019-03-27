@@ -27,6 +27,7 @@ Tasks
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | byte[] | Data to be put in message body| new byte[]{1,2,3}|
 | QueueName | string | Name of the queue | sampleQueue |
+| ExchangeName | string | Name of the exchange | sampleExchange |
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
@@ -38,6 +39,7 @@ Tasks
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | string | Data to be put in message body| "abc"|
 | QueueName | string | Name of the queue | sampleQueue |
+| ExchangeName | string | Name of the exchange | sampleQueue |
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
@@ -149,3 +151,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.0.8 | Add Create and Durable options in WriteMessage. Remove declaring queue in ReadMessage operation |
 | 1.1.0 | Fix nacking while reading multiple messages before it read same message multiple times, because of immediately nacking |
 | 1.2.0 | Write to exchange, but does not implement creating exchange on fly. |
+| 1.3.0 | Message persistence is set to true if durable parameter is true. |
