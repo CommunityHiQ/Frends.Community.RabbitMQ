@@ -44,7 +44,7 @@ namespace Frends.Community.RabbitMQ
 
                     }
 
-                    channel.BasicPublish(exchange: "",
+                    channel.BasicPublish(exchange: inputParams.ExchangeName,
                                          routingKey: inputParams.RoutingKey,
                                          basicProperties: null,
                                          body: inputParams.Data);
@@ -69,6 +69,7 @@ namespace Frends.Community.RabbitMQ
                 Data = Encoding.UTF8.GetBytes(inputParams.Data),
                 Durable = inputParams.Durable,
                 HostName = inputParams.HostName,
+                ExchangeName = inputParams.ExchangeName,
                 QueueName = inputParams.QueueName,
                 RoutingKey = inputParams.RoutingKey
             };
@@ -114,14 +115,19 @@ namespace Frends.Community.RabbitMQ
                         if (rcvMessage != null)
                         {
                             output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
-                            if (!inputParams.AutoAck)
-                                channel.BasicNack(rcvMessage.DeliveryTag, false, true);
-
                         }
                         //break the loop if no more messagages are present
                         else
                         {
                             break;
+                        }
+                    }
+
+                    if (!inputParams.AutoAck)
+                    {
+                        foreach (var message in output.Messages)
+                        {
+                            channel.BasicNack(message.DeliveryTag, false, true);
                         }
                     }
                 }
