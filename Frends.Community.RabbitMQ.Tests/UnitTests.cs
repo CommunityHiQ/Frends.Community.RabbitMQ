@@ -19,9 +19,9 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         /// <summary>
-        /// Deletes test queue if it exists
+        /// Deletes test exchange and queue if it exists
         /// </summary>
-        private void DeleteQueue()
+        private void DeleteExchangeAndQueue()
         {
             var factory = new ConnectionFactory();
             factory.HostName = "localhost";
@@ -31,14 +31,15 @@ namespace Frends.Community.RabbitMQ.Tests
                 using (var channel = connection.CreateModel())
                 {
                     channel.QueueDelete("queue", true, true);
+                    channel.ExchangeDelete("exchange", ifUnused: true);
                 }
             }
         }
 
         /// <summary>
-        /// Creates test queue
+        /// Creates test exchange and queue
         /// </summary>
-        private void CreateQueue()
+        private void CreateExchangeAndQueue()
         {
             var factory = new ConnectionFactory();
             factory.HostName = "localhost";
@@ -47,7 +48,9 @@ namespace Frends.Community.RabbitMQ.Tests
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDeclare("queue", false, false, false, null);
+                    channel.ExchangeDeclare("exchange", type: "fanout", durable: false, autoDelete: false);
+                    channel.QueueDeclare("queue", durable: false, exclusive: false, autoDelete: false);
+                    channel.QueueBind("queue", "exchange", routingKey: "");
                 }
             }
         }
@@ -119,7 +122,7 @@ namespace Frends.Community.RabbitMQ.Tests
         [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteToNonExistingQueue()
         {
-            DeleteQueue();
+            DeleteExchangeAndQueue();
 
             Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
@@ -130,9 +133,20 @@ namespace Frends.Community.RabbitMQ.Tests
         [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteToExistingQueue()
         {
-            DeleteQueue();
-            CreateQueue();
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
             Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false });
+            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+        }
+
+        [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
+        public void TestWriteToExistingExchange()
+        {
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
@@ -141,11 +155,22 @@ namespace Frends.Community.RabbitMQ.Tests
         [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteReadStringToQueue()
         {
-            DeleteQueue();
-            CreateQueue();
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
             Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
-    }
+
+        [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
+        public void TestWriteReadStringToExchange()
+        {
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false });
+            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = true, ReadMessageCount = 1000, ConnectWithURI = false });
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
+        }
+	}
 }
