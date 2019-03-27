@@ -146,5 +146,6 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | ---------------------| ---------------------|
 | 1.0.2 | Initial version of RabbitMQ |
 | 1.0.7 | Connect with URI added |
-| 1.0.8 | Add Create and Durable options in WriteMessage. Remove declaring queue in ReadMessage operation
-| 1.1.0 | Fix nacking while reading multiple messages before it read same message multiple times, because of immediately nacking
+| 1.0.8 | Add Create and Durable options in WriteMessage. Remove declaring queue in ReadMessage operation |
+| 1.1.0 | Fix nacking while reading multiple messages before it read same message multiple times, because of immediately nacking |
+| 1.2.0 | Write to exchange, but does not implement creating exchange on fly. |
