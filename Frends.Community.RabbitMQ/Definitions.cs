@@ -53,6 +53,13 @@ namespace Frends.Community.RabbitMQ
     /// </summary>
     public class WriteInputParams
     {
+
+        public WriteInputParams()
+        {
+            ExchangeName = String.Empty;
+            RoutingKey = String.Empty;
+        }
+
         /// <summary>
         /// Data payload
         /// </summary>
@@ -108,6 +115,12 @@ namespace Frends.Community.RabbitMQ
 
     public class WriteInputParamsString
     {
+        public WriteInputParamsString()
+        {
+            ExchangeName = String.Empty;
+            RoutingKey = String.Empty;
+        }
+
         /// <summary>
         /// Data payload in string. Will be internally converted to byte array using UTF8.Convert method
         /// </summary>
