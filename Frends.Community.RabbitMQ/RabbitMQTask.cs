@@ -12,55 +12,81 @@ namespace Frends.Community.RabbitMQ
     /// </summary>
     public class RabbitMQTask
     {
+        private static IConnection _connection = null;
+        private static IModel _channel = null;
+
+        private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
+        {
+            if (_connection == null || _connection.IsOpen == false)
+            {
+                var factory = new ConnectionFactory();
+
+                if (connectWithURI)
+                {
+                    factory.Uri = new Uri(hostName);
+                }
+                else
+                {
+                    factory.HostName = hostName;
+                }
+
+                _connection = factory.CreateConnection();
+            }
+
+            if (_channel == null || _channel.IsClosed)
+            {
+                _channel = _connection.CreateModel();
+            }
+        }
+
+        /// <summary>
+        /// Closes connection and channel to RabbitMQ
+        /// </summary>
+        public static void CloseConnection()
+        {
+            if (_channel != null)
+            {
+                _channel.Close();
+            }
+
+            if (_connection != null)
+            {
+                _connection.Close();
+            }
+        }
+
         /// <summary>
         /// Writes message to a queue
         /// </summary>
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab]WriteInputParams inputParams)
         {
+            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
 
-            var factory = new ConnectionFactory();
-
-			if (inputParams.ConnectWithURI)
-			{
-				factory.Uri = new Uri(inputParams.HostName);
-			}
-			else
-			{
-				factory.HostName = inputParams.HostName;
-			}
-
-			using (var connection = factory.CreateConnection())
+            if (inputParams.Create)
             {
-                using (var channel = connection.CreateModel())
-                {
-                    if (inputParams.Create)
-                    {
-                        channel.QueueDeclare(queue: inputParams.QueueName,
-                                     durable: inputParams.Durable,
-                                     exclusive: false,
-                                     autoDelete: false,
-                                     arguments: null);
+                _channel.QueueDeclare(queue: inputParams.QueueName,
+                                durable: inputParams.Durable,
+                                exclusive: false,
+                                autoDelete: false,
+                                arguments: null);
 
-                    }
-
-                    IBasicProperties basicProperties = null;
-                    if (inputParams.Durable == true)
-                    {
-                        basicProperties = channel.CreateBasicProperties();
-                        basicProperties.Persistent = true;
-                    }
-
-                    channel.BasicPublish(exchange: inputParams.ExchangeName,
-                                         routingKey: inputParams.RoutingKey,
-                                         basicProperties: basicProperties,
-                                         body: inputParams.Data);
-                }
             }
+
+            IBasicProperties basicProperties = null;
+            if (inputParams.Durable == true)
+            {
+                basicProperties = _channel.CreateBasicProperties();
+                basicProperties.Persistent = true;
+            }
+
+            _channel.BasicPublish(exchange: inputParams.ExchangeName,
+                                    routingKey: inputParams.RoutingKey,
+                                    basicProperties: basicProperties,
+                                    body: inputParams.Data);
 
             return true;
         }
-
 
         /// <summary>
         /// Writes message to queue. Message is a string and there is internal conversion from string to byte[] using UTF8 encoding
@@ -94,51 +120,58 @@ namespace Frends.Community.RabbitMQ
         {
             Output output = new Output();
 
-			var factory = new ConnectionFactory();
+            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
 
-			if (inputParams.ConnectWithURI)
-			{
-				factory.Uri = new Uri(inputParams.HostName);
-			}
-			else
-			{
-				factory.HostName = inputParams.HostName;
-			}
+            //channel.QueueDeclare(queue: inputParams.QueueName,
+            //             durable: false,
+            //             exclusive: false,
+            //             autoDelete: false,
+            //             arguments: null);
 
-			using (var connection = factory.CreateConnection())
+            while (inputParams.ReadMessageCount-- > 0)
             {
-                using (var channel = connection.CreateModel())
+                var rcvMessage = _channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck == ReadAckType.AutoAck);
+                if (rcvMessage != null)
                 {
-
-                    //channel.QueueDeclare(queue: inputParams.QueueName,
-                    //             durable: false,
-                    //             exclusive: false,
-                    //             autoDelete: false,
-                    //             arguments: null);
-
-                    while (inputParams.ReadMessageCount-- > 0)
-                    {
-                        var rcvMessage = channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck);
-                        if (rcvMessage != null)
-                        {
-                            output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
-                        }
-                        //break the loop if no more messagages are present
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!inputParams.AutoAck)
-                    {
-                        foreach (var message in output.Messages)
-                        {
-                            channel.BasicNack(message.DeliveryTag, false, true);
-                        }
-                    }
+                    output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
+                }
+                //break the loop if no more messagages are present
+                else
+                {
+                    break;
                 }
             }
+
+            // Auto acking
+            if (inputParams.AutoAck != ReadAckType.AutoAck && inputParams.AutoAck != ReadAckType.ManualAck)
+            {
+                ManualAckType ackType = ManualAckType.NackAndRequeue;
+
+                switch (inputParams.AutoAck)
+                {
+                    case ReadAckType.AutoNack:
+                        ackType = ManualAckType.Nack;
+                        break;
+
+                    case ReadAckType.AutoNackAndRequeue:
+                        ackType = ManualAckType.NackAndRequeue;
+                        break;
+
+                    case ReadAckType.AutoReject:
+                        ackType = ManualAckType.Reject;
+                        break;
+
+                    case ReadAckType.AutoRejectAndRequeue:
+                        ackType = ManualAckType.RejectAndRequeue;
+                        break;
+                }
+
+                foreach (var message in output.Messages)
+                {
+                    AcknowledgeMessage(ackType, message.DeliveryTag);
+                }
+            }
+
             return output;
         }
 
@@ -160,6 +193,43 @@ namespace Frends.Community.RabbitMQ
               }).ToList();
 
             return outString;
+        }
+
+        /// <summary>
+        /// Acknowledges received message. Throws exception on error.
+        /// </summary>
+        /// <param name="ackType"></param>
+        /// <param name="deliveryTag"></param>
+        public static void AcknowledgeMessage(ManualAckType ackType, ulong deliveryTag)
+        {
+            if (_channel == null)
+            {
+                // do not try to re-connect, because messages already nacked automatically
+                throw new Exception("No connection to RabbitMQ");
+            }
+
+            switch (ackType)
+            {
+                case ManualAckType.Ack:
+                    _channel.BasicAck(deliveryTag, multiple: false);
+                    break;
+
+                case ManualAckType.Nack:
+                    _channel.BasicNack(deliveryTag, multiple: false, requeue: false);
+                    break;
+
+                case ManualAckType.NackAndRequeue:
+                    _channel.BasicNack(deliveryTag, multiple: false, requeue: true);
+                    break;
+
+                case ManualAckType.Reject:
+                    _channel.BasicReject(deliveryTag, requeue: false);
+                    break;
+
+                case ManualAckType.RejectAndRequeue:
+                    _channel.BasicReject(deliveryTag, requeue: true);
+                    break;
+            }
         }
     }
 }
