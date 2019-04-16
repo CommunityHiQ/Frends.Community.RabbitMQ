@@ -59,7 +59,7 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Read message count")]
         public int ReadMessageCount { get; set; }
         /// <summary>
-        /// Acknowledge read messages. False to just peek last message
+        /// Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck.
         /// </summary>
         [DefaultValue(ReadAckType.AutoAck)]
         [DisplayName(@"Auto ack")]

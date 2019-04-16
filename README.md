@@ -56,7 +56,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### Output
@@ -86,7 +86,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### OutputString

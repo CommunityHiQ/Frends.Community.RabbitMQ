@@ -191,5 +191,22 @@ namespace Frends.Community.RabbitMQ.Tests
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
+
+
+        /// <summary>
+        /// Used for debugging, if connection is closed and opened for new hostname
+        /// </summary>
+        [TestMethod]
+        [Ignore("RabbitMQ is not installed on build server.")]
+        public void TestChangingHostName()
+        {
+            DeleteExchangeAndQueue();
+            CreateExchangeAndQueue();
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "amqp://localhost",  ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = true, Create = false, Durable = false });
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
+
+            Assert.IsTrue(true);
+        }
+
     }
 }

@@ -17,6 +17,12 @@ namespace Frends.Community.RabbitMQ
 
         private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
+            //close connection if hostname has changed
+            if(_connection!=null && _connection.Endpoint.HostName != hostName)
+            {
+                CloseConnection();
+            }
+
             if (_connection == null || _connection.IsOpen == false)
             {
                 var factory = new ConnectionFactory();
