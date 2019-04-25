@@ -69,7 +69,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Ignore("Rabbit/*M*/Q is not installed on build server.")]
         public void TestReadWithAck10()
         {
             DeleteExchangeAndQueue();
@@ -183,7 +183,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
-        //[Ignore("RabbitMQ is not installed on build server.")]
+        [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteReadStringToQueue()
         {
             DeleteExchangeAndQueue();
@@ -194,7 +194,7 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [TestMethod]
-        //[Ignore("RabbitMQ is not installed on build server.")]
+        [Ignore("RabbitMQ is not installed on build server.")]
         public void TestWriteReadStringToExchange()
         {
             DeleteExchangeAndQueue();

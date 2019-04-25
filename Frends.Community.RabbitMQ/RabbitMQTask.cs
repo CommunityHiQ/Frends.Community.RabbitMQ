@@ -178,35 +178,6 @@ namespace Frends.Community.RabbitMQ
                 foreach (var message in output.Messages)
                 {
                     AcknowledgeMessage(ackType, message.DeliveryTag);
-
-                    //channel.QueueDeclare(queue: inputParams.QueueName,
-                    //             durable: false,
-                    //             exclusive: false,
-                    //             autoDelete: false,
-                    //             arguments: null);
-
-                    while (inputParams.ReadMessageCount-- > 0)
-                    {
-                        var rcvMessage = channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck);
-                        if (rcvMessage != null)
-                        {
-                            output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
-                        }
-                        //break the loop if no more messagages are present
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!inputParams.AutoAck)
-                    {
-                        foreach (var message in output.Messages)
-                        {
-                            channel.BasicNack(message.DeliveryTag, false, true);
-                        }
-                    }
-
                 }
             }
 
