@@ -9,6 +9,31 @@ using System.Threading.Tasks;
 namespace Frends.Community.RabbitMQ
 {
     /// <summary>
+    /// Acknowledge type for manual operation
+    /// </summary>
+    public enum ManualAckType
+    {
+        Ack,
+        Nack,
+        NackAndRequeue,
+        Reject,
+        RejectAndRequeue
+    }
+
+    /// <summary>
+    /// Acknowledge type while reading message
+    /// </summary>
+    public enum ReadAckType
+    {
+        ManualAck,
+        AutoAck,
+        AutoNack,
+        AutoNackAndRequeue,
+        AutoReject,
+        AutoRejectAndRequeue
+    }
+
+    /// <summary>
     /// Collection of read message parameters
     /// </summary>
     public class ReadInputParams
@@ -34,12 +59,11 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Read message count")]
         public int ReadMessageCount { get; set; }
         /// <summary>
-        /// Acknowledge read messages. False to just peek last message
+        /// Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck.
         /// </summary>
-        [DefaultValue(true)]
+        [DefaultValue(ReadAckType.AutoAck)]
         [DisplayName(@"Auto ack")]
-        [DisplayFormat(DataFormatString = "Text")]
-        public bool AutoAck { get; set; }
+        public ReadAckType AutoAck { get; set; }
         /// <summary>
         /// Use URI instead of a hostname
         /// </summary>
