@@ -91,9 +91,9 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Expression")]
         public byte[] Data { get; set; }
         /// <summary>
-        /// Name of the exchange
+        /// Name of the exchange e.g. sampleExchange
         /// </summary>
-        [DefaultValue("sampleExchange")]
+        [DefaultValue("")]
         [DisplayName(@"Exchange name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string ExchangeName { get; set; }
