@@ -1,6 +1,5 @@
 ﻿using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace Frends.Community.RabbitMQ
     {
         private static IConnection _connection = null;
         private static IModel _channel = null;
-
+        
         private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
             //close connection if hostname has changed
@@ -23,7 +22,7 @@ namespace Frends.Community.RabbitMQ
                 CloseConnection();
             }
 
-            if (_connection == null || _connection.IsOpen == false)
+            if (_connection == null || !_connection.IsOpen)
             {
                 var factory = new ConnectionFactory();
 
@@ -53,8 +52,8 @@ namespace Frends.Community.RabbitMQ
             if (_channel != null)
             {
                 _channel.Close();
+                _channel.Dispose();
             }
-
             if (_connection != null)
             {
                 _connection.Close();
@@ -62,38 +61,60 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Writes message to a queue
+        /// Writes messages into a queue with batch publish. All messages are under transaction. If one the message failes all messages will be rolled back.  
         /// </summary>
         /// <param name="inputParams"></param>
-        public static bool WriteMessage([PropertyTab]WriteInputParams inputParams)
+        public static bool WriteMessage([PropertyTab] WriteInputParams inputParams)
         {
-            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
-
-            if (inputParams.Create)
+            try
             {
-                _channel.QueueDeclare(queue: inputParams.QueueName,
-                                durable: inputParams.Durable,
-                                exclusive: false,
-                                autoDelete: false,
-                                arguments: null);
+                OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
 
+                if (inputParams.Create && _channel == null || _channel.IsClosed)
+                {
+                    _channel.QueueDeclare(queue: inputParams.QueueName,
+                        durable: inputParams.Durable,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: null);
+                }
+
+                IBasicProperties basicProperties = null;
+
+                if (inputParams.Durable == true)
+                {
+                    basicProperties = _channel.CreateBasicProperties();
+                    basicProperties.Persistent = true;
+                }
+                
+                if (inputParams.WriteMessageCount != null &&
+                    _channel.MessageCount(inputParams.QueueName) >= int.Parse(inputParams.WriteMessageCount))
+                {
+                    _channel.TxSelect();
+                    _channel.ConfirmSelect();
+                    IBasicPublishBatch batch = _channel.CreateBasicPublishBatch();
+                    batch.Publish();
+                    _channel.TxCommit();
+                    _channel.CreateBasicPublishBatch();
+                    if (_channel.MessageCount(inputParams.QueueName) > 0)
+                        _channel.TxRollback();
+                    return true;
+                }
+
+                else
+                {
+                    _channel.BasicPublish(exchange:
+                        inputParams.ExchangeName,
+                        routingKey: inputParams.RoutingKey,
+                        basicProperties: basicProperties,
+                        body: inputParams.Data);
+                    return false;
+                }
             }
-
-            IBasicProperties basicProperties = null;
-            if (inputParams.Durable == true)
+            finally
             {
-
-                basicProperties = _channel.CreateBasicProperties();
-                basicProperties.Persistent = true;
-
+                //CloseConnection();
             }
-
-            _channel.BasicPublish(exchange: inputParams.ExchangeName,
-                                    routingKey: inputParams.RoutingKey,
-                                    basicProperties: basicProperties,
-                                    body: inputParams.Data);
-
-            return true;
         }
 
         /// <summary>
@@ -116,7 +137,6 @@ namespace Frends.Community.RabbitMQ
             };
 
             return WriteMessage(wip);
-
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 
 namespace Frends.Community.RabbitMQ
 {
@@ -116,6 +117,10 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
+        /// <summary>
+        /// Amount of messages in the buffer which will be sent over messaging queue as a chunk. 
+        /// </summary>
+        public string WriteMessageCount { get; set; }
         public string HostName { get; set; }
         /// <summary>
         /// Use URI instead of a hostname
@@ -135,6 +140,7 @@ namespace Frends.Community.RabbitMQ
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
         public bool Durable { get; set; }
+        
     }
 
     public class WriteInputParamsString
@@ -151,6 +157,7 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Data")]
         [DisplayFormat(DataFormatString = "Text")]
         public string Data { get; set; }
+        
         /// <summary>
         /// Name of the exchange
         /// </summary>
