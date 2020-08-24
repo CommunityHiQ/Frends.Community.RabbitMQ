@@ -30,6 +30,7 @@ Tasks
 | ExchangeName | string | Name of the exchange | sampleExchange |
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| WriteMessageCount | string | Amount of messages in the buffer which will be sent over messaging queue as a batch.  | 20 |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 | Create | bool | True to declare queue before writing | False to not declare it|
 | Durable | bool | Set durable option when creating queue |
