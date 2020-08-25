@@ -92,10 +92,8 @@ namespace Frends.Community.RabbitMQ
                 {
                     _channel.TxSelect();
                     _channel.ConfirmSelect();
-                    IBasicPublishBatch batch = _channel.CreateBasicPublishBatch();
-                    batch.Publish();
+                    _channel.CreateBasicPublishBatch().Publish();
                     _channel.TxCommit();
-                    _channel.CreateBasicPublishBatch();
                     if (_channel.MessageCount(inputParams.QueueName) > 0)
                         _channel.TxRollback();
                     return true;
