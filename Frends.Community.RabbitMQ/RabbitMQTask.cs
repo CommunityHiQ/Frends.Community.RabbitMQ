@@ -66,17 +66,16 @@ namespace Frends.Community.RabbitMQ
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab] WriteInputParams inputParams)
         {
-            try
-            {
-                OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
 
-                if (inputParams.Create && _channel == null || _channel.IsClosed)
+                if (inputParams.Create)
                 {
                     _channel.QueueDeclare(queue: inputParams.QueueName,
                         durable: inputParams.Durable,
                         exclusive: false,
                         autoDelete: false,
                         arguments: null);
+                    _channel.ConfirmSelect();
                 }
 
                 IBasicProperties basicProperties = null;
@@ -86,33 +85,48 @@ namespace Frends.Community.RabbitMQ
                     basicProperties = _channel.CreateBasicProperties();
                     basicProperties.Persistent = true;
                 }
-                
+
                 if (inputParams.WriteMessageCount != null &&
                     _channel.MessageCount(inputParams.QueueName) >= int.Parse(inputParams.WriteMessageCount))
                 {
-                    _channel.TxSelect();
-                    _channel.ConfirmSelect();
-                    _channel.CreateBasicPublishBatch().Publish();
-                    _channel.TxCommit();
-                    if (_channel.MessageCount(inputParams.QueueName) > 0)
+                    try
+                    {
+                        _channel.TxSelect();
+                        _channel.CreateBasicPublishBatch().Add(
+                            exchange: inputParams.ExchangeName,
+                            routingKey: inputParams.RoutingKey,
+                            mandatory: true,
+                            properties: basicProperties,
+                            body: inputParams.Data);
+                        _channel.CreateBasicPublishBatch().Publish();
+                        _channel.TxCommit();
+                        if (_channel.MessageCount(inputParams.QueueName) > 0)
+                        {
+                            _channel.TxRollback();
+                            return false;
+                        }
+                        return true;
+                    }
+                    catch (Exception exception)
+                    {
                         _channel.TxRollback();
-                    return true;
+                        throw exception;
+                    }
                 }
-
-                else
+                else if (inputParams.WriteMessageCount != null  || int.Parse(inputParams.WriteMessageCount) == 1)
                 {
                     _channel.BasicPublish(exchange:
                         inputParams.ExchangeName,
                         routingKey: inputParams.RoutingKey,
                         basicProperties: basicProperties,
                         body: inputParams.Data);
+                    return true;
+                }
+                else
+                {
                     return false;
                 }
-            }
-            finally
-            {
                 //CloseConnection();
-            }
         }
 
         /// <summary>
