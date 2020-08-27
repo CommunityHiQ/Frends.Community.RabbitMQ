@@ -117,11 +117,14 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
-        /// <summary>
-        /// Amount of messages in the buffer which will be sent over messaging queue as a chunk. 
-        /// </summary>
-        public string WriteMessageCount { get; set; }
         public string HostName { get; set; }
+        /// <summary>
+        /// Amount of messages in the buffer under trasaction which will be sent over the messaging channel as a chunk. 
+        /// </summary>
+        /// [DefaultValue(1)]
+        [DisplayName(@"Write message count")]
+        public string WriteMessageCount { get; set; }
+        
         /// <summary>
         /// Use URI instead of a hostname
         /// </summary>
