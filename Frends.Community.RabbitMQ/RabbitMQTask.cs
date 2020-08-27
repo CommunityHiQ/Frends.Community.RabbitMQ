@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Frends.Community.RabbitMQ
 {
@@ -11,43 +12,33 @@ namespace Frends.Community.RabbitMQ
     /// </summary>
     public class RabbitMQTask
     {
-        private static IConnection _connection = null;
-        private static IModel _channel = null;
+        private static readonly ConnectionFactory Factory = new ConnectionFactory();
         
-        private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
+        private static IConnection OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
-            //close connection if hostname has changed
-            if(_connection!=null && _connection.Endpoint.HostName != hostName)
+            lock (Factory)
             {
-                CloseConnection();
-            }
-
-            if (_connection == null || !_connection.IsOpen)
-            {
-                var factory = new ConnectionFactory();
-
-                if (connectWithURI)
+                IConnection _connection = null;
                 {
-                    factory.Uri = new Uri(hostName);
+                    if (connectWithURI)
+                    {
+                        Factory.Uri = new Uri(hostName);
+                    }
+                    else
+                    {
+                        Factory.HostName = hostName;
+                    }
+                    _connection = Factory.CreateConnection();
                 }
-                else
-                {
-                    factory.HostName = hostName;
-                }
-
-                _connection = factory.CreateConnection();
-            }
-
-            if (_channel == null || _channel.IsClosed)
-            {
-                _channel = _connection.CreateModel();
+                
+                return _connection; 
             }
         }
 
         /// <summary>
         /// Closes connection and channel to RabbitMQ
         /// </summary>
-        public static void CloseConnection()
+        public static void CloseConnection(IModel _channel, IConnection _connection)
         {
             if (_channel != null)
             {
@@ -66,8 +57,10 @@ namespace Frends.Community.RabbitMQ
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab] WriteInputParams inputParams)
         {
-            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
-
+            IConnection _connection = OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+            IModel _channel = _connection.CreateModel();
+            try
+            {
                 if (inputParams.Create)
                 {
                     _channel.QueueDeclare(queue: inputParams.QueueName,
@@ -105,6 +98,7 @@ namespace Frends.Community.RabbitMQ
                             _channel.TxRollback();
                             return false;
                         }
+
                         return true;
                     }
                     catch (Exception exception)
@@ -113,7 +107,7 @@ namespace Frends.Community.RabbitMQ
                         throw exception;
                     }
                 }
-                else if (inputParams.WriteMessageCount != null  || int.Parse(inputParams.WriteMessageCount) == 1)
+                else if (inputParams.WriteMessageCount != null || int.Parse(inputParams.WriteMessageCount) == 1)
                 {
                     _channel.BasicPublish(exchange:
                         inputParams.ExchangeName,
@@ -126,7 +120,13 @@ namespace Frends.Community.RabbitMQ
                 {
                     return false;
                 }
-                //CloseConnection();
+            }
+            finally
+            {
+               CloseConnection(_channel, _connection); 
+            }
+
+            
         }
 
         /// <summary>
@@ -158,62 +158,68 @@ namespace Frends.Community.RabbitMQ
         /// <returns>JSON structure with message contents</returns>
         public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
-            Output output = new Output();
-
-            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
-
-            //channel.QueueDeclare(queue: inputParams.QueueName,
-            //             durable: false,
-            //             exclusive: false,
-            //             autoDelete: false,
-            //             arguments: null);
-
-            while (inputParams.ReadMessageCount-- > 0)
+            IConnection _connection = OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+            IModel _channel = _connection.CreateModel();
+            try
             {
-                var rcvMessage = _channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck == ReadAckType.AutoAck);
-                if (rcvMessage != null)
+                Output output = new Output();
+                
+                while (inputParams.ReadMessageCount-- > 0)
                 {
-                    output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
+                    var rcvMessage = _channel.BasicGet(queue: inputParams.QueueName,
+                        autoAck: inputParams.AutoAck == ReadAckType.AutoAck);
+                    if (rcvMessage != null)
+                    {
+                        output.Messages.Add(new Message
+                        {
+                            Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount,
+                            DeliveryTag = rcvMessage.DeliveryTag
+                        });
+                    }
+                    //break the loop if no more messagages are present
+                    else
+                    {
+                        break;
+                    }
                 }
-                //break the loop if no more messagages are present
-                else
-                {
-                    break;
-                }
-            }
 
-            // Auto acking
-            if (inputParams.AutoAck != ReadAckType.AutoAck && inputParams.AutoAck != ReadAckType.ManualAck)
+                // Auto acking
+                if (inputParams.AutoAck != ReadAckType.AutoAck && inputParams.AutoAck != ReadAckType.ManualAck)
+                {
+                    ManualAckType ackType = ManualAckType.NackAndRequeue;
+
+                    switch (inputParams.AutoAck)
+                    {
+                        case ReadAckType.AutoNack:
+                            ackType = ManualAckType.Nack;
+                            break;
+
+                        case ReadAckType.AutoNackAndRequeue:
+                            ackType = ManualAckType.NackAndRequeue;
+                            break;
+
+
+                        case ReadAckType.AutoReject:
+                            ackType = ManualAckType.Reject;
+                            break;
+
+                        case ReadAckType.AutoRejectAndRequeue:
+                            ackType = ManualAckType.RejectAndRequeue;
+                            break;
+                    }
+
+                    foreach (var message in output.Messages)
+                    {
+                        AcknowledgeMessage(_channel, ackType, message.DeliveryTag);
+                    }
+                }
+                
+                return output;
+            }
+            finally
             {
-                ManualAckType ackType = ManualAckType.NackAndRequeue;
-
-                switch (inputParams.AutoAck)
-                {
-                    case ReadAckType.AutoNack:
-                        ackType = ManualAckType.Nack;
-                        break;
-
-                    case ReadAckType.AutoNackAndRequeue:
-                        ackType = ManualAckType.NackAndRequeue;
-                        break;
-
-
-                    case ReadAckType.AutoReject:
-                        ackType = ManualAckType.Reject;
-                        break;
-
-                    case ReadAckType.AutoRejectAndRequeue:
-                        ackType = ManualAckType.RejectAndRequeue;
-                        break;
-                }
-
-                foreach (var message in output.Messages)
-                {
-                    AcknowledgeMessage(ackType, message.DeliveryTag);
-                }
+                CloseConnection(_channel, _connection); 
             }
-
-            return output;
         }
 
         /// <summary>
@@ -241,7 +247,7 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="ackType"></param>
         /// <param name="deliveryTag"></param>
-        public static void AcknowledgeMessage(ManualAckType ackType, ulong deliveryTag)
+        public static void AcknowledgeMessage(IModel _channel, ManualAckType ackType, ulong deliveryTag)
         {
             if (_channel == null)
             {
