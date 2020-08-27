@@ -79,35 +79,9 @@ namespace Frends.Community.RabbitMQ
                     basicProperties.Persistent = true;
                 }
 
-                if (inputParams.WriteMessageCount != null &&
-                    _channel.MessageCount(inputParams.QueueName) >= int.Parse(inputParams.WriteMessageCount))
-                {
-                    try
-                    {
-                        _channel.TxSelect();
-                        _channel.CreateBasicPublishBatch().Add(
-                            exchange: inputParams.ExchangeName,
-                            routingKey: inputParams.RoutingKey,
-                            mandatory: true,
-                            properties: basicProperties,
-                            body: inputParams.Data);
-                        _channel.CreateBasicPublishBatch().Publish();
-                        _channel.TxCommit();
-                        if (_channel.MessageCount(inputParams.QueueName) > 0)
-                        {
-                            _channel.TxRollback();
-                            return false;
-                        }
-
-                        return true;
-                    }
-                    catch (Exception exception)
-                    {
-                        _channel.TxRollback();
-                        throw exception;
-                    }
-                }
-                else if (inputParams.WriteMessageCount != null || int.Parse(inputParams.WriteMessageCount) == 1)
+                
+                if (inputParams.WriteMessageCount == null || 
+                    inputParams.WriteMessageCount != null && int.Parse(inputParams.WriteMessageCount) == 1)
                 {
                     _channel.BasicPublish(exchange:
                         inputParams.ExchangeName,
@@ -118,7 +92,46 @@ namespace Frends.Community.RabbitMQ
                 }
                 else
                 {
-                    return false;
+                    // Add message into a memory based on producer write capability.
+                    if (inputParams.WriteMessageCount != null &&
+                        _channel.MessageCount(inputParams.QueueName) <= int.Parse(inputParams.WriteMessageCount))
+                    {
+                        _channel.CreateBasicPublishBatch().Add(
+                            exchange: inputParams.ExchangeName,
+                            routingKey: inputParams.RoutingKey,
+                            mandatory: true,
+                            properties: basicProperties,
+                            body: inputParams.Data);
+                        return false;
+                    }
+                
+                    // Commit under transaction when all of the messages have been received for the producer.
+                    if (inputParams.WriteMessageCount != null &&
+                        _channel.MessageCount(inputParams.QueueName) == int.Parse(inputParams.WriteMessageCount))
+                    {
+                        try
+                        {
+                            _channel.TxSelect();
+                            _channel.CreateBasicPublishBatch().Publish();
+                            _channel.TxCommit();
+                            if (_channel.MessageCount(inputParams.QueueName) > 0)
+                            {
+                                _channel.TxRollback();
+                                return false;
+                            }
+                            return true;
+                        }
+                        catch (Exception exception)
+                        {
+                            _channel.TxRollback();
+                            throw exception;
+                        }
+                    }
+                
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
             finally
