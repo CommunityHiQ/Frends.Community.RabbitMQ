@@ -191,6 +191,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
         /// <summary>
+        /// Amount of messages in the buffer under trasaction which will be sent over the messaging channel as a chunk. 
+        /// </summary>
+        [DefaultValue(1)]
+        [DisplayFormat(DataFormatString = "Text")] 
+        [DisplayName(@"Write message count")]
+        public int WriteMessageCount { get; set; }
+        /// <summary>
         /// Process execution id from the system 
         /// </summary>
         /// [DefaultValue(#process.executionid)]

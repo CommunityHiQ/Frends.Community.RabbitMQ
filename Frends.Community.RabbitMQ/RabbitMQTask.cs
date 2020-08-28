@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
-using System.Threading;
 
 namespace Frends.Community.RabbitMQ
 {
@@ -40,19 +39,19 @@ namespace Frends.Community.RabbitMQ
 
         private static IBasicPublishBatch CreateBasicPublishBatch(String processExecutionId, IModel channel)
         {
-            IBasicPublishBatch basicPublishBatch = channel.CreateBasicPublishBatch();
-            return ConcurrentDictionary.GetOrAdd(processExecutionId, basicPublishBatch);
+            return ConcurrentDictionary.GetOrAdd(processExecutionId, 
+                (x) => channel.CreateBasicPublishBatch());
         }
         
-        private static void DeleteBasicPublishBatch(String processExecutionId, IBasicPublishBatch channel)
+        private static void DeleteBasicPublishBatch(String processExecutionId)
         {
-            ConcurrentDictionary.TryRemove(processExecutionId, out channel);
+            ConcurrentDictionary.TryRemove(processExecutionId, out var _);
         }
 
         /// <summary>
         /// Closes connection and channel to RabbitMQ
         /// </summary>
-        public static void CloseConnection(IModel channel, IConnection connection)
+        private static void CloseConnection(IModel channel, IConnection connection)
         {
             if (channel != null)
             {
@@ -63,10 +62,29 @@ namespace Frends.Community.RabbitMQ
             {
                 connection.Close();
             }
+         }
+        
+        /// <summary>
+        /// Closes connection and channel to RabbitMQ
+        /// </summary>
+        private static void CloseBatchConnection(IModel channel, IConnection connection, string processExecutionId)
+        {
+            if (!ConcurrentDictionary.ContainsKey(processExecutionId))
+            {
+                if (channel != null)
+                {
+                    channel.Close();
+                    channel.Dispose();
+                }
+                if (connection != null)
+                {
+                    connection.Close();
+                }
+            }
         }
 
         /// <summary>
-        /// Writes messages into a queue with batch publish. All messages are under transaction. If one the message failes all messages will be rolled back.  
+        /// Writes messages into a queue with simple publish. Message is not under transaction. No rollback of failed messages.  
         /// </summary>
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab] WriteInputParams inputParams)
@@ -102,52 +120,87 @@ namespace Frends.Community.RabbitMQ
                         body: inputParams.Data);
                     return true;
                 }
-                else
-                {
-                    // Add message into a memory based on producer write capability.
-                    if (channel.MessageCount(inputParams.QueueName) <= inputParams.WriteMessageCount)
-                    {
-                        CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Add(
-                            exchange: inputParams.ExchangeName,
-                            routingKey: inputParams.RoutingKey,
-                            mandatory: true,
-                            properties: basicProperties,
-                            body: inputParams.Data);
-                        return false;
-                    }
 
-                    // Commit under transaction when all of the messages have been received for the producer.
-                    if (channel.MessageCount(inputParams.QueueName) == inputParams.WriteMessageCount)
-                    {
-                        try
-                        {
-                            channel.TxSelect();
-                            CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
-                            channel.TxCommit();
-                            
-                            if (channel.MessageCount(inputParams.QueueName) > 0)
-                            {
-                                channel.TxRollback();
-                                return false;
-                            }
-                            return true;
-                        }
-                        catch (Exception exception)
-                        {
-                            channel.TxRollback();
-                            throw exception;
-                        }
-                    }
-                
-                    else
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
             finally
             {
                CloseConnection(channel, connection); 
+            }
+        }
+        
+        /// <summary>
+        /// Writes messages into a queue with batch publish. All messages are under transaction. If one the message failes all messages will be rolled back.  
+        /// </summary>
+        /// <param name="inputParams"></param>
+        public static bool WriteBatchMessage([PropertyTab] WriteInputParams inputParams)
+        {
+            IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
+            IModel channel = connection.CreateModel();
+            try
+            {
+                if (inputParams.Create)
+                {
+                    channel.QueueDeclare(queue: inputParams.QueueName,
+                        durable: inputParams.Durable,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: null);
+                    channel.ConfirmSelect();
+                }
+
+                IBasicProperties basicProperties = null;
+
+                if (inputParams.Durable == true)
+                {
+                    basicProperties = channel.CreateBasicProperties();
+                    basicProperties.Persistent = true;
+                }
+            
+                // Add message into a memory based on producer write capability.
+                if (channel.MessageCount(inputParams.QueueName) <= inputParams.WriteMessageCount)
+                {
+                    CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Add(
+                        exchange: inputParams.ExchangeName,
+                        routingKey: inputParams.RoutingKey,
+                        mandatory: true,
+                        properties: basicProperties,
+                        body: inputParams.Data);
+                    return false;
+                }
+
+                // Commit under transaction when all of the messages have been received for the producer.
+                if (channel.MessageCount(inputParams.QueueName) == inputParams.WriteMessageCount)
+                {
+                    try
+                    {
+                        channel.TxSelect();
+                        CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
+                        channel.TxCommit();
+                        
+                        if (channel.MessageCount(inputParams.QueueName) > 0)
+                        {
+                            channel.TxRollback();
+                            return false;
+                        }
+
+                        DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
+                        return true;
+                    }
+                    catch (Exception exception)
+                    {
+                        channel.TxRollback();
+                        throw exception;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            finally
+            {
+                CloseBatchConnection(channel, connection, inputParams.ProcessExecutionId); 
             }
         }
 
@@ -164,14 +217,39 @@ namespace Frends.Community.RabbitMQ
                 Create = inputParams.Create,
                 Data = Encoding.UTF8.GetBytes(inputParams.Data),
                 Durable = inputParams.Durable,
+                WriteMessageCount = inputParams.WriteMessageCount,
+                ProcessExecutionId = inputParams.ProcessExecutionId,
                 HostName = inputParams.HostName,
                 ExchangeName = inputParams.ExchangeName,
                 QueueName = inputParams.QueueName,
-                RoutingKey = inputParams.RoutingKey,
-                ProcessExecutionId = inputParams.ProcessExecutionId
+                RoutingKey = inputParams.RoutingKey
             };
 
             return WriteMessage(wip);
+        }
+
+        /// <summary>
+        /// Writes message to a queue in batch. Message is a string and there is internal conversion from string to byte[] using UTF8 encoding
+        /// </summary>
+        /// <param name="inputParams"></param>
+        /// <returns></returns>
+        public static bool WriteTextMessageBatch([PropertyTab]WriteInputParamsString inputParams)
+        {
+            WriteInputParams wip = new WriteInputParams
+            {
+                ConnectWithURI = inputParams.ConnectWithURI,
+                Create = inputParams.Create,
+                Data = Encoding.UTF8.GetBytes(inputParams.Data),
+                Durable = inputParams.Durable,
+                WriteMessageCount = inputParams.WriteMessageCount,
+                ProcessExecutionId = inputParams.ProcessExecutionId,
+                HostName = inputParams.HostName,
+                ExchangeName = inputParams.ExchangeName,
+                QueueName = inputParams.QueueName,
+                RoutingKey = inputParams.RoutingKey
+            };
+
+            return WriteBatchMessage(wip);
         }
 
         /// <summary>
