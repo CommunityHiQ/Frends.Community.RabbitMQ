@@ -63,7 +63,7 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue", ProcessExecutionId = Guid.NewGuid().ToString()});
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1 });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
@@ -75,7 +75,7 @@ namespace Frends.Community.RabbitMQ.Tests
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
             for (int i = 0; i < 10; i++)
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
+                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue", ProcessExecutionId = Guid.NewGuid().ToString()});
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000 });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
@@ -87,7 +87,7 @@ namespace Frends.Community.RabbitMQ.Tests
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
             for (int i = 0; i < 10; i++)
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
+                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue", ProcessExecutionId = Guid.NewGuid().ToString() });
 
           var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoNackAndRequeue, ReadMessageCount = 10 });
 
@@ -100,7 +100,7 @@ namespace Frends.Community.RabbitMQ.Tests
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
 
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = true });
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = true, ProcessExecutionId = Guid.NewGuid().ToString() });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1, ConnectWithURI = true });
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
@@ -114,7 +114,7 @@ namespace Frends.Community.RabbitMQ.Tests
             CreateExchangeAndQueue();
             for (int i = 0; i < 10; i++)
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false });
+                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, ProcessExecutionId = Guid.NewGuid().ToString() });
             }
 
 
@@ -131,7 +131,7 @@ namespace Frends.Community.RabbitMQ.Tests
             CreateExchangeAndQueue();
             for (int i = 0; i < 10; i++)
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false });
+                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, ProcessExecutionId = Guid.NewGuid().ToString() });
             }
 
           var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoNackAndRequeue, ReadMessageCount = 10, ConnectWithURI = true });
@@ -148,7 +148,7 @@ namespace Frends.Community.RabbitMQ.Tests
             Exception xx = null;
             try
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false });
+                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, ProcessExecutionId = Guid.NewGuid().ToString() });
 
                 var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
 
@@ -166,7 +166,7 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false });
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false, ProcessExecutionId = Guid.NewGuid().ToString() });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
@@ -177,7 +177,7 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             DeleteExchangeAndQueue();
             CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false });
+            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false, ProcessExecutionId = Guid.NewGuid().ToString() });
             var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }

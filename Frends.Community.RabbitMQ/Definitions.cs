@@ -124,7 +124,12 @@ namespace Frends.Community.RabbitMQ
         /// [DefaultValue(1)]
         [DisplayName(@"Write message count")]
         public string WriteMessageCount { get; set; }
-        
+        /// <summary>
+        /// Process execution id from the system 
+        /// </summary>
+        /// [DefaultValue(#process.executionid)]
+        [DisplayName(@"Process execution id")]
+        public string ProcessExecutionId { get; set; }
         /// <summary>
         /// Use URI instead of a hostname
         /// </summary>
@@ -188,6 +193,12 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
+        /// <summary>
+        /// Process execution id from the system 
+        /// </summary>
+        /// [DefaultValue(#process.executionid)]
+        [DisplayName(@"Process execution id")]
+        public string ProcessExecutionId { get; set; }
         /// <summary>
         /// Use URI instead of a hostname
         /// </summary>
