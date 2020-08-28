@@ -17,7 +17,7 @@ namespace Frends.Community.RabbitMQ
         
         private static ConcurrentDictionary<string, IBasicPublishBatch> ConcurrentDictionary = new ConcurrentDictionary<string, IBasicPublishBatch>();
         
-        private static IConnection OpenConnectionIfClosed(string hostName, bool connectWithURI)
+        private static IConnection CreateConnection(string hostName, bool connectWithURI)
         {
             lock (Factory)
             {
@@ -71,7 +71,7 @@ namespace Frends.Community.RabbitMQ
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab] WriteInputParams inputParams)
         {
-            IConnection connection = OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+            IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
             try
             {
@@ -184,7 +184,7 @@ namespace Frends.Community.RabbitMQ
         /// <returns>JSON structure with message contents</returns>
         public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
-            IConnection connection = OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+            IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
             try
             {
