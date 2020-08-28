@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RabbitMQ.Client;
 
 namespace Frends.Community.RabbitMQ
 {
@@ -121,9 +117,10 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// Amount of messages in the buffer under trasaction which will be sent over the messaging channel as a chunk. 
         /// </summary>
-        /// [DefaultValue(1)]
+        [DefaultValue(1)]
+        [DisplayFormat(DataFormatString = "Text")] 
         [DisplayName(@"Write message count")]
-        public string WriteMessageCount { get; set; }
+        public int WriteMessageCount { get; set; }
         /// <summary>
         /// Process execution id from the system 
         /// </summary>

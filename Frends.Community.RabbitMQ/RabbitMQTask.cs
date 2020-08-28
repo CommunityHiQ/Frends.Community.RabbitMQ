@@ -93,8 +93,7 @@ namespace Frends.Community.RabbitMQ
                     basicProperties.Persistent = true;
                 }
                 
-                if (inputParams.WriteMessageCount == null || 
-                    inputParams.WriteMessageCount != null && int.Parse(inputParams.WriteMessageCount) == 1)
+                if (inputParams.WriteMessageCount <= 1)
                 {
                     channel.BasicPublish(exchange:
                         inputParams.ExchangeName,
@@ -106,8 +105,7 @@ namespace Frends.Community.RabbitMQ
                 else
                 {
                     // Add message into a memory based on producer write capability.
-                    if (inputParams.WriteMessageCount != null &&
-                        channel.MessageCount(inputParams.QueueName) <= int.Parse(inputParams.WriteMessageCount))
+                    if (channel.MessageCount(inputParams.QueueName) <= inputParams.WriteMessageCount)
                     {
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Add(
                             exchange: inputParams.ExchangeName,
@@ -119,8 +117,7 @@ namespace Frends.Community.RabbitMQ
                     }
 
                     // Commit under transaction when all of the messages have been received for the producer.
-                    if (inputParams.WriteMessageCount != null &&
-                        channel.MessageCount(inputParams.QueueName) == int.Parse(inputParams.WriteMessageCount))
+                    if (channel.MessageCount(inputParams.QueueName) == inputParams.WriteMessageCount)
                     {
                         try
                         {
