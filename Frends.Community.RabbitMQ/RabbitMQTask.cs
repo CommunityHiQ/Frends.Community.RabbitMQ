@@ -17,8 +17,6 @@ namespace Frends.Community.RabbitMQ
         
         private static ConcurrentDictionary<string, IBasicPublishBatch> ConcurrentDictionary = new ConcurrentDictionary<string, IBasicPublishBatch>();
         
-        private static ReaderWriterLock ReaderWriterLock  = new ReaderWriterLock();
-
         private static IConnection OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
             lock (Factory)
