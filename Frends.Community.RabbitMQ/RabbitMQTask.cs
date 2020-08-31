@@ -42,23 +42,11 @@ namespace Frends.Community.RabbitMQ
         {
             lock (Factory)
             {
-                IConnection connection = null;
-                {
-                    if (connectWithURI)
-                    {
-                        Factory.Uri = new Uri(hostName);
-                    }
-                    else
-                    {
-                        Factory.HostName = hostName;
-                    }
-                    connection = Factory.CreateConnection();
-                }
                 return BatchChannels.GetOrAdd(processExecutionId, 
-                    (x) => connection);
+                    (x) => CreateConnection(hostName, connectWithURI));
             }
         }
-
+        
         private static IBasicPublishBatch CreateBasicPublishBatch(String processExecutionId, IModel channel)
         {
             return ConcurrentDictionary.GetOrAdd(processExecutionId, 
