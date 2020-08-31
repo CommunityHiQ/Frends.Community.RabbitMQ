@@ -36,6 +36,27 @@ namespace Frends.Community.RabbitMQ
                 return connection; 
             }
         }
+        
+        private static IConnection CreateBatchConnection(string hostName, bool connectWithURI)
+        {
+            lock (Factory)
+            {
+                IConnection connection = null;
+                {
+                    if (connectWithURI)
+                    {
+                        Factory.Uri = new Uri(hostName);
+                    }
+                    else
+                    {
+                        Factory.HostName = hostName;
+                    }
+                    connection = Factory.CreateConnection();
+                }
+                
+                return connection; 
+            }
+        }
 
         private static IBasicPublishBatch CreateBasicPublishBatch(String processExecutionId, IModel channel)
         {
@@ -91,6 +112,7 @@ namespace Frends.Community.RabbitMQ
         {
             IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
+            
             try
             {
                 if (inputParams.Create)
@@ -100,7 +122,7 @@ namespace Frends.Community.RabbitMQ
                         exclusive: false,
                         autoDelete: false,
                         arguments: null);
-                    channel.ConfirmSelect();
+                    channel.ConfirmSelect();  
                 }
 
                 IBasicProperties basicProperties = null;
@@ -146,7 +168,7 @@ namespace Frends.Community.RabbitMQ
                         exclusive: false,
                         autoDelete: false,
                         arguments: null);
-                    channel.ConfirmSelect();
+                    channel.TxSelect();
                 }
 
                 IBasicProperties basicProperties = null;
@@ -174,7 +196,6 @@ namespace Frends.Community.RabbitMQ
                 {
                     try
                     {
-                        channel.TxSelect();
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
                         channel.TxCommit();
                         
