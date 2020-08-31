@@ -124,7 +124,8 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// Process execution id from the system 
         /// </summary>
-        /// [DefaultValue(#process.executionid)]
+        [DefaultValue("#process.executionid")]
+        [DisplayFormat(DataFormatString = "Expression")] 
         [DisplayName(@"Process execution id")]
         public string ProcessExecutionId { get; set; }
         /// <summary>
@@ -200,7 +201,8 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// Process execution id from the system 
         /// </summary>
-        /// [DefaultValue(#process.executionid)]
+        [DefaultValue("#process.executionid")]
+        [DisplayFormat(DataFormatString = "Expression")] 
         [DisplayName(@"Process execution id")]
         public string ProcessExecutionId { get; set; }
         /// <summary>
