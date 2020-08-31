@@ -15,7 +15,8 @@ namespace Frends.Community.RabbitMQ
         private static readonly ConnectionFactory Factory = new ConnectionFactory();
         
         private static ConcurrentDictionary<string, IBasicPublishBatch> ConcurrentDictionary = new ConcurrentDictionary<string, IBasicPublishBatch>();
-        
+        private static ConcurrentDictionary<string, IConnection> BatchChannels = new ConcurrentDictionary<string, IConnection>();
+
         private static IConnection CreateConnection(string hostName, bool connectWithURI)
         {
             lock (Factory)
@@ -37,7 +38,7 @@ namespace Frends.Community.RabbitMQ
             }
         }
         
-        private static IConnection CreateBatchConnection(string hostName, bool connectWithURI)
+        private static IConnection CreateBatchConnection(string processExecutionId, string hostName, bool connectWithURI)
         {
             lock (Factory)
             {
@@ -53,8 +54,8 @@ namespace Frends.Community.RabbitMQ
                     }
                     connection = Factory.CreateConnection();
                 }
-                
-                return connection; 
+                return BatchChannels.GetOrAdd(processExecutionId, 
+                    (x) => connection);
             }
         }
 
@@ -100,6 +101,8 @@ namespace Frends.Community.RabbitMQ
                 if (connection != null)
                 {
                     connection.Close();
+                    BatchChannels.TryRemove(processExecutionId, out var _);
+                    connection = null;
                 }
             }
         }
@@ -157,7 +160,7 @@ namespace Frends.Community.RabbitMQ
         /// <param name="inputParams"></param>
         public static bool WriteBatchMessage([PropertyTab] WriteInputParams inputParams)
         {
-            IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
+            IConnection connection = CreateBatchConnection(inputParams.ProcessExecutionId, inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
             try
             {
