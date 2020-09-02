@@ -16,7 +16,7 @@ namespace Frends.Community.RabbitMQ
         
         private static ConcurrentDictionary<string, IBasicPublishBatch> ConcurrentDictionary = new ConcurrentDictionary<string, IBasicPublishBatch>();
         private static ConcurrentDictionary<string, IConnection> BatchChannels = new ConcurrentDictionary<string, IConnection>();
-
+        
         private static IConnection CreateConnection(string hostName, bool connectWithURI)
         {
             lock (Factory)
@@ -189,26 +189,27 @@ namespace Frends.Community.RabbitMQ
                     {
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
                         channel.TxCommit();
-                        
+                        /**
+                         * rollback only when exception is thrown
                         if (channel.MessageCount(inputParams.QueueName) > 0)
                         {
                             channel.TxRollback();
                             return false;
                         }
-
+                        */
                         DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
                         return true;
                     }
                     catch (Exception exception)
                     {
                         channel.TxRollback();
-                        throw exception;
+                        return false;
                     }
                 }
                 else
                 {
                     return false;
-                }
+                }    
             }
             finally
             {
