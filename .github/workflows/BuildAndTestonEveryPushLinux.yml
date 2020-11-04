@@ -10,9 +10,6 @@ jobs:
     name: Build on ubuntu-latest
     runs-on: ubuntu-latest
   
-    container:
-      image:  rabbitmq:3.7-management
-      options: --hostname my-rabbit -p 9080:15672 -p 5772:5672 -e RABBITMQ_DEFAULT_USER=agent -e RABBITMQ_DEFAULT_PASS=agent123
 
    
     steps:
