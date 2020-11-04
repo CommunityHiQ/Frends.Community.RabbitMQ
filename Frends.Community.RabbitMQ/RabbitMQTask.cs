@@ -286,7 +286,7 @@ namespace Frends.Community.RabbitMQ
                     {
                         output.Messages.Add(new Message
                         {
-                            Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount,
+                            Data = Convert.ToBase64String(rcvMessage.Body.ToArray()), MessagesCount = rcvMessage.MessageCount,
                             DeliveryTag = rcvMessage.DeliveryTag
                         });
                     }
