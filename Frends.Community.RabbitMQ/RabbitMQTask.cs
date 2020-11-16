@@ -344,14 +344,16 @@ namespace Frends.Community.RabbitMQ
         public static OutputString ReadMessageString([PropertyTab]ReadInputParams inputParams)
         {
             var messages = ReadMessage(inputParams);
-            OutputString outString = new OutputString();
-            outString.Messages = messages.Messages.Select(m =>
-              new MessageString
-              {
-                  DeliveryTag = m.DeliveryTag,
-                  MessagesCount = m.MessagesCount,
-                  Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data))
-              }).ToList();
+            OutputString outString = new OutputString
+            {
+                Messages = messages.Messages.Select(m =>
+                  new MessageString
+                  {
+                      DeliveryTag = m.DeliveryTag,
+                      MessagesCount = m.MessagesCount,
+                      Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data))
+                  }).ToList()
+            };
 
             return outString;
         }
