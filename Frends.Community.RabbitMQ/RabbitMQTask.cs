@@ -13,17 +13,17 @@ namespace Frends.Community.RabbitMQ
     public class RabbitMQTask
     {
         private static readonly ConnectionFactory Factory = new ConnectionFactory();
-        
+
         private static ConcurrentDictionary<string, IBasicPublishBatch> ConcurrentDictionary = new ConcurrentDictionary<string, IBasicPublishBatch>();
         private static ConcurrentDictionary<string, IConnection> BatchChannels = new ConcurrentDictionary<string, IConnection>();
-        
-        private static IConnection CreateConnection(string hostName, bool connectWithURI)
+
+        private static IConnection CreateConnection(string hostName, bool connectWithUri)
         {
             lock (Factory)
             {
-                IConnection connection = null;
+                IConnection connection;
                 {
-                    if (connectWithURI)
+                    if (connectWithUri)
                     {
                         Factory.Uri = new Uri(hostName);
                     }
@@ -33,27 +33,27 @@ namespace Frends.Community.RabbitMQ
                     }
                     connection = Factory.CreateConnection();
                 }
-                
-                return connection; 
+
+                return connection;
             }
         }
-        
-        private static IConnection CreateBatchConnection(string processExecutionId, string hostName, bool connectWithURI)
+
+        private static IConnection CreateBatchConnection(string processExecutionId, string hostName, bool connectWithUri)
         {
             lock (Factory)
             {
-                return BatchChannels.GetOrAdd(processExecutionId, 
-                    (x) => CreateConnection(hostName, connectWithURI));
+                return BatchChannels.GetOrAdd(processExecutionId,
+                    (x) => CreateConnection(hostName, connectWithUri));
             }
         }
-        
-        private static IBasicPublishBatch CreateBasicPublishBatch(String processExecutionId, IModel channel)
+
+        private static IBasicPublishBatch CreateBasicPublishBatch(string processExecutionId, IModel channel)
         {
-            return ConcurrentDictionary.GetOrAdd(processExecutionId, 
+            return ConcurrentDictionary.GetOrAdd(processExecutionId,
                 (x) => channel.CreateBasicPublishBatch());
         }
-        
-        private static void DeleteBasicPublishBatch(String processExecutionId)
+
+        private static void DeleteBasicPublishBatch(string processExecutionId)
         {
             ConcurrentDictionary.TryRemove(processExecutionId, out var _);
         }
@@ -72,8 +72,8 @@ namespace Frends.Community.RabbitMQ
             {
                 connection.Close();
             }
-         }
-        
+        }
+
         /// <summary>
         /// Closes connection and channel to RabbitMQ
         /// </summary>
@@ -89,8 +89,7 @@ namespace Frends.Community.RabbitMQ
                 if (connection != null)
                 {
                     connection.Close();
-                    BatchChannels.TryRemove(processExecutionId, out var _);
-                    connection = null;
+                    BatchChannels.TryRemove(processExecutionId, out _);
                 }
             }
         }
@@ -103,7 +102,7 @@ namespace Frends.Community.RabbitMQ
         {
             IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
-            
+
             try
             {
                 if (inputParams.Create)
@@ -113,40 +112,37 @@ namespace Frends.Community.RabbitMQ
                         exclusive: false,
                         autoDelete: false,
                         arguments: null);
-                    channel.ConfirmSelect();  
+                    channel.ConfirmSelect();
                 }
 
                 IBasicProperties basicProperties = null;
 
-                if (inputParams.Durable == true)
+                if (inputParams.Durable)
                 {
                     basicProperties = channel.CreateBasicProperties();
                     basicProperties.Persistent = true;
                 }
-                
-                if (inputParams.WriteMessageCount <= 1)
-                {
-                    channel.BasicPublish(exchange:
-                        inputParams.ExchangeName,
-                        routingKey: inputParams.RoutingKey,
-                        basicProperties: basicProperties,
-                        body: inputParams.Data);
-                    return true;
-                }
 
-                return false;
+
+                channel.BasicPublish(exchange:
+                    inputParams.ExchangeName,
+                    routingKey: inputParams.RoutingKey,
+                    basicProperties: basicProperties,
+                    body: inputParams.Data);
+                return true;
+                
             }
             finally
             {
-               CloseConnection(channel, connection); 
+                CloseConnection(channel, connection);
             }
         }
-        
+
         /// <summary>
         /// Writes messages into a queue with batch publish. All messages are under transaction. If one the message failes all messages will be rolled back.  
         /// </summary>
         /// <param name="inputParams"></param>
-        public static bool WriteBatchMessage([PropertyTab] WriteInputParams inputParams)
+        public static bool WriteBatchMessage([PropertyTab] WriteBatchInputParams inputParams)
         {
             IConnection connection = CreateBatchConnection(inputParams.ProcessExecutionId, inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
@@ -164,12 +160,12 @@ namespace Frends.Community.RabbitMQ
 
                 IBasicProperties basicProperties = null;
 
-                if (inputParams.Durable == true)
+                if (inputParams.Durable)
                 {
                     basicProperties = channel.CreateBasicProperties();
                     basicProperties.Persistent = true;
                 }
-            
+
                 // Add message into a memory based on producer write capability.
                 if (channel.MessageCount(inputParams.QueueName) <= inputParams.WriteMessageCount)
                 {
@@ -178,7 +174,7 @@ namespace Frends.Community.RabbitMQ
                         routingKey: inputParams.RoutingKey,
                         mandatory: true,
                         properties: basicProperties,
-                        body: inputParams.Data);
+                        body: new ReadOnlyMemory<byte>(inputParams.Data));
                     return false;
                 }
 
@@ -189,8 +185,8 @@ namespace Frends.Community.RabbitMQ
                     {
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
                         channel.TxCommit();
-                        /**
-                         * rollback only when exception is thrown
+                        /*
+                         rollback only when exception is thrown
                         if (channel.MessageCount(inputParams.QueueName) > 0)
                         {
                             channel.TxRollback();
@@ -200,7 +196,7 @@ namespace Frends.Community.RabbitMQ
                         DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
                         return true;
                     }
-                    catch (Exception exception)
+                    catch (Exception)
                     {
                         channel.TxRollback();
                         return false;
@@ -209,11 +205,11 @@ namespace Frends.Community.RabbitMQ
                 else
                 {
                     return false;
-                }    
+                }
             }
             finally
             {
-                CloseBatchConnection(channel, connection, inputParams.ProcessExecutionId); 
+                CloseBatchConnection(channel, connection, inputParams.ProcessExecutionId);
             }
         }
 
@@ -222,7 +218,7 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns></returns>
-        public static bool WriteMessageString([PropertyTab]WriteInputParamsString inputParams)
+        public static bool WriteMessageString([PropertyTab] WriteInputParamsString inputParams)
         {
             WriteInputParams wip = new WriteInputParams
             {
@@ -230,8 +226,6 @@ namespace Frends.Community.RabbitMQ
                 Create = inputParams.Create,
                 Data = Encoding.UTF8.GetBytes(inputParams.Data),
                 Durable = inputParams.Durable,
-                WriteMessageCount = inputParams.WriteMessageCount,
-                ProcessExecutionId = inputParams.ProcessExecutionId,
                 HostName = inputParams.HostName,
                 ExchangeName = inputParams.ExchangeName,
                 QueueName = inputParams.QueueName,
@@ -246,9 +240,9 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns></returns>
-        public static bool WriteTextMessageBatch([PropertyTab]WriteInputParamsString inputParams)
+        public static bool WriteTextMessageBatch([PropertyTab] WriteBatchInputParamsString inputParams)
         {
-            WriteInputParams wip = new WriteInputParams
+            WriteBatchInputParams wip = new WriteBatchInputParams
             {
                 ConnectWithURI = inputParams.ConnectWithURI,
                 Create = inputParams.Create,
@@ -270,14 +264,14 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns>JSON structure with message contents</returns>
-        public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
+        public static Output ReadMessage([PropertyTab] ReadInputParams inputParams)
         {
             IConnection connection = CreateConnection(inputParams.HostName, inputParams.ConnectWithURI);
             IModel channel = connection.CreateModel();
             try
             {
                 Output output = new Output();
-                
+
                 while (inputParams.ReadMessageCount-- > 0)
                 {
                     var rcvMessage = channel.BasicGet(queue: inputParams.QueueName,
@@ -286,7 +280,8 @@ namespace Frends.Community.RabbitMQ
                     {
                         output.Messages.Add(new Message
                         {
-                            Data = Convert.ToBase64String(rcvMessage.Body.ToArray()), MessagesCount = rcvMessage.MessageCount,
+                            Data = Convert.ToBase64String(rcvMessage.Body.ToArray()),
+                            MessagesCount = rcvMessage.MessageCount,
                             DeliveryTag = rcvMessage.DeliveryTag
                         });
                     }
@@ -327,12 +322,12 @@ namespace Frends.Community.RabbitMQ
                         AcknowledgeMessage(channel, ackType, message.DeliveryTag);
                     }
                 }
-                
+
                 return output;
             }
             finally
             {
-                CloseConnection(channel, connection); 
+                CloseConnection(channel, connection);
             }
         }
 
@@ -341,7 +336,7 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns>JSON structure with message contents</returns>
-        public static OutputString ReadMessageString([PropertyTab]ReadInputParams inputParams)
+        public static OutputString ReadMessageString([PropertyTab] ReadInputParams inputParams)
         {
             var messages = ReadMessage(inputParams);
             OutputString outString = new OutputString
@@ -361,11 +356,9 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// Acknowledges received message. Throws exception on error.
         /// </summary>
-        /// <param name="ackType"></param>
-        /// <param name="deliveryTag"></param>
-        public static void AcknowledgeMessage(IModel _channel, ManualAckType ackType, ulong deliveryTag)
+        public static void AcknowledgeMessage(IModel channel, ManualAckType ackType, ulong deliveryTag)
         {
-            if (_channel == null)
+            if (channel == null)
             {
                 // do not try to re-connect, because messages already nacked automatically
                 throw new Exception("No connection to RabbitMQ");
@@ -374,24 +367,28 @@ namespace Frends.Community.RabbitMQ
             switch (ackType)
             {
                 case ManualAckType.Ack:
-                    _channel.BasicAck(deliveryTag, multiple: false);
+                    channel.BasicAck(deliveryTag, multiple: false);
                     break;
 
                 case ManualAckType.Nack:
-                    _channel.BasicNack(deliveryTag, multiple: false, requeue: false);
+                    channel.BasicNack(deliveryTag, multiple: false, requeue: false);
                     break;
 
                 case ManualAckType.NackAndRequeue:
-                    _channel.BasicNack(deliveryTag, multiple: false, requeue: true);
+                    channel.BasicNack(deliveryTag, multiple: false, requeue: true);
                     break;
 
                 case ManualAckType.Reject:
-                    _channel.BasicReject(deliveryTag, requeue: false);
+                    channel.BasicReject(deliveryTag, requeue: false);
                     break;
 
                 case ManualAckType.RejectAndRequeue:
-                    _channel.BasicReject(deliveryTag, requeue: true);
+                    channel.BasicReject(deliveryTag, requeue: true);
                     break;
+                default:
+                    throw new Exception("Wrong acknowledge type.");
+
+
             }
         }
     }

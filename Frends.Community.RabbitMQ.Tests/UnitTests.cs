@@ -21,12 +21,12 @@ namespace Frends.Community.RabbitMQ.Tests
     {
 
         //public const string TestURI = "amqp://user:password@hostname:port/vhost";
-        public static string TestURI = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
+        public static string TestUri = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
         public static string TestHost = "localhost";
 
-        private WriteInputParams InputParameters = new WriteInputParams();
-        private WriteInputParamsString inputParametersString = new WriteInputParamsString();
-        private ReadInputParams OutputReadParams;
+        private WriteInputParams _inputParameters = new WriteInputParams();
+        private WriteInputParamsString _inputParametersString = new WriteInputParamsString();
+        private ReadInputParams _outputReadParams;
 
 
         /// <summary>
@@ -35,8 +35,10 @@ namespace Frends.Community.RabbitMQ.Tests
         [TearDown]
         public void DeleteExchangeAndQueue()
         {
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri(TestURI);
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(TestUri)
+            };
 
             using (var connection = factory.CreateConnection())
             {
@@ -54,8 +56,10 @@ namespace Frends.Community.RabbitMQ.Tests
         [SetUp]
         public void CreateExchangeAndQueue()
         {
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri(TestURI);
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(TestUri)
+            };
 
             using (var connection = factory.CreateConnection())
             {
@@ -67,13 +71,12 @@ namespace Frends.Community.RabbitMQ.Tests
                 }
             }
 
-            InputParameters = new WriteInputParams
+            _inputParameters = new WriteInputParams
             {
                 Data = new byte[] { 0, 1, 2 },
                 HostName = TestHost,
                 RoutingKey = "queue",
                 QueueName = "queue",
-                ProcessExecutionId = Guid.NewGuid().ToString(),
                 ConnectWithURI = false,
                 Create = false,
                 Durable = false
@@ -81,19 +84,18 @@ namespace Frends.Community.RabbitMQ.Tests
 
 
 
-            inputParametersString = new WriteInputParamsString
+            _inputParametersString = new WriteInputParamsString
             {
                 Data = "test message",
                 HostName = TestHost,
                 RoutingKey = "queue",
                 QueueName = "queue",
-                ProcessExecutionId = Guid.NewGuid().ToString(),
                 ConnectWithURI = false,
                 Create = false,
                 Durable = false
             };
 
-            OutputReadParams = new ReadInputParams
+            _outputReadParams = new ReadInputParams
             {
                 HostName = TestHost,
                 QueueName = "queue",
@@ -106,106 +108,106 @@ namespace Frends.Community.RabbitMQ.Tests
         [Test]
         public void TestWriteRead()
         {
-            RabbitMQTask.WriteMessage(InputParameters);
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
         [Test]
         public void TestReadWithAck10()
         {
-            OutputReadParams.ReadMessageCount = 1000;
+            _outputReadParams.ReadMessageCount = 1000;
 
             for (int i = 0; i < 10; i++)
             {
-                InputParameters.Data = new byte[] { 0, (byte)(i * i) };
-                RabbitMQTask.WriteMessage(InputParameters);
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i) };
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
         [Test]
         public void TestReadNoAck10()
         {
-            InputParameters.ConnectWithURI = true;
-            InputParameters.HostName = TestURI;
+            _inputParameters.ConnectWithURI = true;
+            _inputParameters.HostName = TestUri;
 
-            OutputReadParams.ReadMessageCount = 10;
-            OutputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
+            _outputReadParams.ReadMessageCount = 10;
+            _outputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
 
 
             for (int i = 0; i < 10; i++)
             {
-                InputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
 
-                RabbitMQTask.WriteMessage(InputParameters);
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
         [Test]
-        public void TestWriteReadWithURI()
+        public void TestWriteReadWithUri()
         {
-            InputParameters.HostName = TestURI;
-            InputParameters.ConnectWithURI = true;
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
 
-            OutputReadParams.ConnectWithURI = true;
-            OutputReadParams.HostName = TestURI;
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
 
 
-            RabbitMQTask.WriteMessage(InputParameters);
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
         [Test]
-        public void TestReadWithAck10WithURI()
+        public void TestReadWithAck10WithUri()
         {
-            InputParameters.HostName = TestURI;
-            InputParameters.ConnectWithURI = true;
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
 
 
-            OutputReadParams.ConnectWithURI = true;
-            OutputReadParams.HostName = TestURI;
-            OutputReadParams.ReadMessageCount = 10;
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
 
 
             for (int i = 0; i < 10; i++)
             {
-                InputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
 
-                RabbitMQTask.WriteMessage(InputParameters);
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
         [Test]
-        public void TestReadNoAck10WithURI()
+        public void TestReadNoAck10WithUri()
         {
-            InputParameters.HostName = TestURI;
-            InputParameters.ConnectWithURI = true;
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
 
 
-            OutputReadParams.ConnectWithURI = true;
-            OutputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
-            OutputReadParams.HostName = TestURI;
-            OutputReadParams.ReadMessageCount = 10;
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
 
             for (int i = 0; i < 10; i++)
             {
-                InputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
 
-                RabbitMQTask.WriteMessage(InputParameters);
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
@@ -216,15 +218,15 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             Exception xx = null;
 
-            InputParameters.QueueName = "queue2"; // Queue won't exist, but don't create it
+            _inputParameters.QueueName = "queue2"; // Queue won't exist, but don't create it
 
-            OutputReadParams.QueueName = "queue2";
+            _outputReadParams.QueueName = "queue2";
 
             try
             {
-                RabbitMQTask.WriteMessage(InputParameters);
+                RabbitMQTask.WriteMessage(_inputParameters);
 
-                var _ = RabbitMQTask.ReadMessage(OutputReadParams);
+                var _ = RabbitMQTask.ReadMessage(_outputReadParams);
 
             }
             catch (Exception x)
@@ -235,28 +237,14 @@ namespace Frends.Community.RabbitMQ.Tests
         }
 
         [Test]
-        public void TestWriteToNewQueue() // pois TODO
-        {
-
-            InputParameters.QueueName = "queue2";
-            InputParameters.Create = true;
-
-            OutputReadParams.QueueName = "queue2";
-
-            RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = true, Create = false, Durable = false, ProcessExecutionId = Guid.NewGuid().ToString() });
-            var retVal = RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
-        }
-
-        [Test]
         public void TestWriteToExistingExchange()
         {
 
-            InputParameters.QueueName = null;
-            InputParameters.ExchangeName = "exchange";
+            _inputParameters.QueueName = null;
+            _inputParameters.ExchangeName = "exchange";
 
-            RabbitMQTask.WriteMessage(InputParameters);
-            var retVal = RabbitMQTask.ReadMessage(OutputReadParams);
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
@@ -264,8 +252,8 @@ namespace Frends.Community.RabbitMQ.Tests
         public void TestWriteReadStringToQueue()
         {
 
-            RabbitMQTask.WriteMessageString(inputParametersString);
-            var retVal = RabbitMQTask.ReadMessageString(OutputReadParams);
+            RabbitMQTask.WriteMessageString(_inputParametersString);
+            var retVal = RabbitMQTask.ReadMessageString(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
@@ -274,12 +262,12 @@ namespace Frends.Community.RabbitMQ.Tests
         public void TestWriteReadStringToExchange()
         {
 
-            inputParametersString.QueueName = null;
-            inputParametersString.ExchangeName = "exchange";
+            _inputParametersString.QueueName = null;
+            _inputParametersString.ExchangeName = "exchange";
 
-            RabbitMQTask.WriteMessageString(inputParametersString);
+            RabbitMQTask.WriteMessageString(_inputParametersString);
 
-            var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
+            var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestUri, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
 
