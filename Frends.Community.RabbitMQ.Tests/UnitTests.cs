@@ -26,6 +26,10 @@ namespace Frends.Community.RabbitMQ.Tests
 
         private WriteInputParams _inputParameters = new WriteInputParams();
         private WriteInputParamsString _inputParametersString = new WriteInputParamsString();
+        
+        private WriteBatchInputParams _inputBatchParameters = new WriteBatchInputParams();
+        private WriteBatchInputParamsString _inputBatchParametersString = new WriteBatchInputParamsString();
+
         private ReadInputParams _outputReadParams;
 
 
@@ -102,6 +106,32 @@ namespace Frends.Community.RabbitMQ.Tests
                 AutoAck = ReadAckType.AutoAck,
                 ReadMessageCount = 1,
                 ConnectWithURI = false
+            };
+
+            _inputBatchParameters = new WriteBatchInputParams
+            {
+                Data = new byte[] { 0, 1, 2 },
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ProcessExecutionId = Guid.NewGuid().ToString(),
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
+            };
+
+
+
+            _inputBatchParametersString = new WriteBatchInputParamsString
+            {
+                Data = "test message",
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ProcessExecutionId = Guid.NewGuid().ToString(),
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
             };
         }
 
@@ -283,6 +313,30 @@ namespace Frends.Community.RabbitMQ.Tests
             RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
 
             Assert.IsTrue(true);
+        }
+
+        [Test]
+        public void TestReadWithAck10WithUriWithBatchWrite()
+        {
+            _inputBatchParameters.HostName = TestUri;
+            _inputBatchParameters.ConnectWithURI = true;
+            _inputBatchParameters.WriteMessageCount = 1;
+
+
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
+
+            for (int i = 0; i < 10; i++)
+            {
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+
+                RabbitMQTask.WriteBatchMessage(_inputBatchParameters);
+            }
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
+
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
     }
 }

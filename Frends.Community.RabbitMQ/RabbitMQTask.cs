@@ -213,6 +213,7 @@ namespace Frends.Community.RabbitMQ
             }
         }
 
+
         /// <summary>
         /// Writes message to queue. Message is a string and there is internal conversion from string to byte[] using UTF8 encoding
         /// </summary>
