@@ -1,5 +1,5 @@
 # Frends.Community.RabbitMQ
-Frends task for operating on RabbitMQ queues. Supports reading and writing from queue.
+Frends task for operating on RabbitMQ queues using AMQP 0-9-1. Supports reading and writing from queue.
 
 - [Installing](#installing)
 - [Tasks](#tasks)
@@ -30,8 +30,6 @@ Tasks
 | ExchangeName | string | Name of the exchange | sampleExchange |
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
-| WriteMessageCount | string | Amount of messages in the buffer which will be sent over messaging queue as a batch.  | 20 |
-| ProcessExecutionId | string | Unique id of the process execution.  | igbmdajlskdhlfjaeirjwkdjfasdflht |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 | Create | bool | True to declare queue before writing | False to not declare it|
 | Durable | bool | Set durable option when creating queue |
@@ -44,8 +42,6 @@ Tasks
 | ExchangeName | string | Name of the exchange | sampleQueue |
 | RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
-| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
-| ProcessExecutionId | string | Unique id of the process execution.  | igbmdajlskdhlfjaeirjwkdjfasdflht |
 | Create | bool | True to declare queue before writing | False to not declare it|
 | Durable | bool | Set durable option when creating queue |
 
@@ -59,7 +55,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue, AutoReject, AutoRejectAndRequeue, ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### Output
@@ -89,7 +85,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue, AutoReject,AutoRejectAndRequeue, ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### OutputString
@@ -108,7 +104,36 @@ Tasks
 | DeliveryTag | ulong | | |
 
 
+## WriteBatchMessage
 
+### Task Parameters
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | byte[] | Data to be put in message body| new byte[]{1,2,3}|
+| QueueName | string | Name of the queue | sampleQueue |
+| ExchangeName | string | Name of the exchange | sampleExchange |
+| RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| WriteMessageCount | string | Amount of messages in the buffer which will be sent over messaging queue as a batch.  | 20 |
+| ProcessExecutionId | string | Unique id of the process execution.  | igbmdajlskdhlfjaeirjwkdjfasdflht |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+| Create | bool | True to declare queue before writing | False to not declare it|
+| Durable | bool | Set durable option when creating queue |
+
+
+## WriteBatchMessageString
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| Data | string | Data to be put in message body| "abc"|
+| QueueName | string | Name of the queue | sampleQueue |
+| ExchangeName | string | Name of the exchange | sampleQueue |
+| RoutingKey | string | Routing key (as in RabbitMQ specification) | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+| ProcessExecutionId | string | Unique id of the process execution.  | igbmdajlskdhlfjaeirjwkdjfasdflht |
+| Create | bool | True to declare queue before writing | False to not declare it|
+| Durable | bool | Set durable option when creating queue |
 
 # License
 

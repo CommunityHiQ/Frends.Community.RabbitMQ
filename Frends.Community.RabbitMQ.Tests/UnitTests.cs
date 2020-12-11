@@ -1,32 +1,48 @@
-﻿using System;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using RabbitMQ.Client;
+using System;
+using System.Linq;
 
 namespace Frends.Community.RabbitMQ.Tests
 {
-    [TestClass]
+
+    /// <summary>
+    /// You will need access to RabbitMQ queue, you can create it e.g. by running
+    ///
+    /// docker run -d --hostname my-rabbit -p 9080:15672 -p 5772:5672 -e RABBITMQ_DEFAULT_USER=agent -e RABBITMQ_DEFAULT_PASS=agent123  rabbitmq:3.7-management
+    ///
+    /// In that case URI would be amqp://agent:agent123@localhost:5772
+    /// 
+    /// </summary>
+
+    [TestFixture]
+    // [Ignore("RabbitMQ is not installed on build server.")]
     public class UnitTests
     {
+
         //public const string TestURI = "amqp://user:password@hostname:port/vhost";
-        public const string TestURI = "localhost";
+        public static string TestUri = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
+        public static string TestHost = "localhost";
 
-        [TestInitialize]
-        public void TestInit()
-        {
+        private WriteInputParams _inputParameters = new WriteInputParams();
+        private WriteInputParamsString _inputParametersString = new WriteInputParamsString();
+        
+        private WriteBatchInputParams _inputBatchParameters = new WriteBatchInputParams();
+        private WriteBatchInputParamsString _inputBatchParametersString = new WriteBatchInputParamsString();
 
-            //var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000 });
-            //var retVal2 = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
+        private ReadInputParams _outputReadParams;
 
-        }
 
         /// <summary>
         /// Deletes test exchange and queue if it exists
         /// </summary>
-        private void DeleteExchangeAndQueue()
+        [TearDown]
+        public void DeleteExchangeAndQueue()
         {
-            var factory = new ConnectionFactory();
-            factory.HostName = "localhost";
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(TestUri)
+            };
 
             using (var connection = factory.CreateConnection())
             {
@@ -41,10 +57,13 @@ namespace Frends.Community.RabbitMQ.Tests
         /// <summary>
         /// Creates test exchange and queue
         /// </summary>
-        private void CreateExchangeAndQueue()
+        [SetUp]
+        public void CreateExchangeAndQueue()
         {
-            var factory = new ConnectionFactory();
-            factory.HostName = "localhost";
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(TestUri)
+            };
 
             using (var connection = factory.CreateConnection())
             {
@@ -55,102 +74,189 @@ namespace Frends.Community.RabbitMQ.Tests
                     channel.QueueBind("queue", "exchange", routingKey: "");
                 }
             }
+
+            _inputParameters = new WriteInputParams
+            {
+                Data = new byte[] { 0, 1, 2 },
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
+            };
+
+
+
+            _inputParametersString = new WriteInputParamsString
+            {
+                Data = "test message",
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
+            };
+
+            _outputReadParams = new ReadInputParams
+            {
+                HostName = TestHost,
+                QueueName = "queue",
+                AutoAck = ReadAckType.AutoAck,
+                ReadMessageCount = 1,
+                ConnectWithURI = false
+            };
+
+            _inputBatchParameters = new WriteBatchInputParams
+            {
+                Data = new byte[] { 0, 1, 2 },
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ProcessExecutionId = Guid.NewGuid().ToString(),
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
+            };
+
+
+
+            _inputBatchParametersString = new WriteBatchInputParamsString
+            {
+                Data = "test message",
+                HostName = TestHost,
+                RoutingKey = "queue",
+                QueueName = "queue",
+                ProcessExecutionId = Guid.NewGuid().ToString(),
+                ConnectWithURI = false,
+                Create = false,
+                Durable = false
+            };
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestWriteRead()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1 });
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
-        [TestMethod]
-        [Ignore("Rabbit/*M*/Q is not installed on build server.")]
+        [Test]
         public void TestReadWithAck10()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
+            _outputReadParams.ReadMessageCount = 1000;
+
             for (int i = 0; i < 10; i++)
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000 });
+            {
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i) };
+                RabbitMQTask.WriteMessage(_inputParameters);
+            }
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestReadNoAck10()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            for (int i = 0; i < 10; i++)
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = "localhost", RoutingKey = "queue", QueueName = "queue" });
+            _inputParameters.ConnectWithURI = true;
+            _inputParameters.HostName = TestUri;
 
-          var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = "localhost", QueueName = "queue", AutoAck = ReadAckType.AutoNackAndRequeue, ReadMessageCount = 10 });
+            _outputReadParams.ReadMessageCount = 10;
+            _outputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
+
+
+            for (int i = 0; i < 10; i++)
+            {
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+
+                RabbitMQTask.WriteMessage(_inputParameters);
+            }
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
-        public void TestWriteReadWithURI()
-        {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
 
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, 1, 2 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = true });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1, ConnectWithURI = true });
+        [Test]
+        public void TestWriteReadWithUri()
+        {
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
+
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
+
+
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
-        public void TestReadWithAck10WithURI()
+        [Test]
+        public void TestReadWithAck10WithUri()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
+
+
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
+
+
             for (int i = 0; i < 10; i++)
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false });
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 10, ConnectWithURI = true });
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
-        public void TestReadNoAck10WithURI()
+        [Test]
+        public void TestReadNoAck10WithUri()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
+            _inputParameters.HostName = TestUri;
+            _inputParameters.ConnectWithURI = true;
+
+
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.AutoAck = ReadAckType.AutoNackAndRequeue;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
+
             for (int i = 0; i < 10; i++)
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0, (byte)(i * i), (byte)i }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false });
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+
+                RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-          var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoNackAndRequeue, ReadMessageCount = 10, ConnectWithURI = true });
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestWriteToNonExistingQueue()
         {
-            DeleteExchangeAndQueue();
             Exception xx = null;
+
+            _inputParameters.QueueName = "queue2"; // Queue won't exist, but don't create it
+
+            _outputReadParams.QueueName = "queue2";
+
             try
             {
-                Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false });
+                RabbitMQTask.WriteMessage(_inputParameters);
 
-                var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
+                var _ = RabbitMQTask.ReadMessage(_outputReadParams);
 
             }
             catch (Exception x)
@@ -160,48 +266,38 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.IsTrue(xx != null);
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
-        public void TestWriteToExistingQueue()
-        {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
-        }
-
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestWriteToExistingExchange()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage(new WriteInputParams { Data = new byte[] { 0 }, HostName = TestURI, ExchangeName = "exchange", ConnectWithURI = false, Create = false, Durable = false });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
+
+            _inputParameters.QueueName = null;
+            _inputParameters.ExchangeName = "exchange";
+
+            RabbitMQTask.WriteMessage(_inputParameters);
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestWriteReadStringToQueue()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = TestURI, RoutingKey = "queue", QueueName = "queue", ConnectWithURI = false, Create = false, Durable = false });
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
+
+            RabbitMQTask.WriteMessageString(_inputParametersString);
+            var retVal = RabbitMQTask.ReadMessageString(_outputReadParams);
+
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
 
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
         public void TestWriteReadStringToExchange()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = TestURI, ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
 
-            var retVal = Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestURI, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = false });
+            _inputParametersString.QueueName = null;
+            _inputParametersString.ExchangeName = "exchange";
+
+            RabbitMQTask.WriteMessageString(_inputParametersString);
+
+            var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestUri, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
         }
 
@@ -209,18 +305,39 @@ namespace Frends.Community.RabbitMQ.Tests
         /// <summary>
         /// Used for debugging, if connection is closed and opened for new hostname
         /// </summary>
-        [TestMethod]
-        [Ignore("RabbitMQ is not installed on build server.")]
+        [Test]
+        [Ignore("This test is actually used for debugging while developing task.")]
         public void TestChangingHostName()
         {
-            DeleteExchangeAndQueue();
-            CreateExchangeAndQueue();
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "amqp://localhost",  ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = true, Create = false, Durable = false });
-            Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
+            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "amqp://localhost", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = true, Create = false, Durable = false });
+            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
 
             Assert.IsTrue(true);
         }
 
+        [Test]
+        public void TestReadWithAck10WithUriWithBatchWrite()
+        {
+            _inputBatchParameters.HostName = TestUri;
+            _inputBatchParameters.ConnectWithURI = true;
+            _inputBatchParameters.WriteMessageCount = 2;
 
+
+            _outputReadParams.ConnectWithURI = true;
+            _outputReadParams.HostName = TestUri;
+            _outputReadParams.ReadMessageCount = 10;
+
+            for (int i = 0; i < 10; i++)
+            {
+                _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+                _inputBatchParameters.ProcessExecutionId = Guid.NewGuid().ToString();
+
+                RabbitMQTask.WriteBatchMessage(_inputBatchParameters);
+            }
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
+
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
+        }
     }
 }
