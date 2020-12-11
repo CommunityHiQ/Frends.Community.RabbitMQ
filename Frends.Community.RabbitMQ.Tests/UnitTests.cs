@@ -320,7 +320,7 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             _inputBatchParameters.HostName = TestUri;
             _inputBatchParameters.ConnectWithURI = true;
-            _inputBatchParameters.WriteMessageCount = 1;
+            _inputBatchParameters.WriteMessageCount = 2;
 
 
             _outputReadParams.ConnectWithURI = true;
@@ -330,6 +330,7 @@ namespace Frends.Community.RabbitMQ.Tests
             for (int i = 0; i < 10; i++)
             {
                 _inputParameters.Data = new byte[] { 0, (byte)(i * i), (byte)i };
+                _inputBatchParameters.ProcessExecutionId = Guid.NewGuid().ToString();
 
                 RabbitMQTask.WriteBatchMessage(_inputBatchParameters);
             }

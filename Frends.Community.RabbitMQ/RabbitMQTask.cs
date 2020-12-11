@@ -175,11 +175,12 @@ namespace Frends.Community.RabbitMQ
                         mandatory: true,
                         properties: basicProperties,
                         body: new ReadOnlyMemory<byte>(inputParams.Data));
-                    return false;
+                    // return false;
                 }
 
+                var a = channel.MessageCount(inputParams.QueueName);
                 // Commit under transaction when all of the messages have been received for the producer.
-                if (channel.MessageCount(inputParams.QueueName) == inputParams.WriteMessageCount)
+                if (a == inputParams.WriteMessageCount)
                 {
                     try
                     {
