@@ -15,8 +15,34 @@ namespace Frends.Community.RabbitMQ
         private static IConnection _connection = null;
         private static IModel _channel = null;
 
+        private static bool IsConnectionHostNameChanged(IConnection currentConnetion, string hostName, bool connectWithURI)
+        {
+            // if no current connection, host name is not changed
+            if (currentConnetion == null || currentConnetion.IsOpen == false)
+            {
+                return false;
+            }
+
+            if (connectWithURI)
+            {
+                var newUri = new Uri(hostName);
+                return (currentConnetion.Endpoint.HostName != newUri.Host);
+            }
+            
+            else // connect direct by host name
+            {
+                return (currentConnetion.Endpoint.HostName != hostName);
+            }
+        }
+
         private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
+            //close connection if hostname has changed
+            if (IsConnectionHostNameChanged(_connection, hostName, connectWithURI)) 
+            {
+                CloseConnection();
+            }
+
             if (_connection == null || _connection.IsOpen == false)
             {
                 var factory = new ConnectionFactory();
@@ -76,8 +102,10 @@ namespace Frends.Community.RabbitMQ
             IBasicProperties basicProperties = null;
             if (inputParams.Durable == true)
             {
+
                 basicProperties = _channel.CreateBasicProperties();
                 basicProperties.Persistent = true;
+
             }
 
             _channel.BasicPublish(exchange: inputParams.ExchangeName,
@@ -156,6 +184,7 @@ namespace Frends.Community.RabbitMQ
                     case ReadAckType.AutoNackAndRequeue:
                         ackType = ManualAckType.NackAndRequeue;
                         break;
+
 
                     case ReadAckType.AutoReject:
                         ackType = ManualAckType.Reject;

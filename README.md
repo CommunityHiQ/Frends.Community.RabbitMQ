@@ -56,7 +56,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### Output
@@ -86,7 +86,7 @@ Tasks
 | QueueName | string | Name of the queue | sampleQueue |
 | HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
 | ReadMessageCount | int | Maximum number of messages to be read from queue. It can exceed number of available messages. | 1 |
-| AutoAck | bool | Acknowledge read messages. False to just peek last message | true |
+| AutoAck | enum |  Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck| ReadAckType.AutoAck |
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 
 ### OutputString
@@ -152,3 +152,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.1.0 | Fix nacking while reading multiple messages before it read same message multiple times, because of immediately nacking |
 | 1.2.0 | Write to exchange, but does not implement creating exchange on fly. |
 | 1.3.0 | Message persistence is set to true if durable parameter is true. |
+| 1.5.0 | Fix detecting if host name is changed and connection needs to be closed or reamin open. |
+

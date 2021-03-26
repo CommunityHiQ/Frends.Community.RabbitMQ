@@ -59,7 +59,7 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Read message count")]
         public int ReadMessageCount { get; set; }
         /// <summary>
-        /// Acknowledge read messages. False to just peek last message
+        /// Set acknowledgement type. AutoAck,AutoNack, AutoNackAndRequeue,AutoReject,AutoRejectAndRequeue,ManualAck.
         /// </summary>
         [DefaultValue(ReadAckType.AutoAck)]
         [DisplayName(@"Auto ack")]
@@ -91,9 +91,9 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Expression")]
         public byte[] Data { get; set; }
         /// <summary>
-        /// Name of the exchange
+        /// Name of the exchange e.g. sampleExchange
         /// </summary>
-        [DefaultValue("sampleExchange")]
+        [DefaultValue("")]
         [DisplayName(@"Exchange name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string ExchangeName { get; set; }
