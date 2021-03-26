@@ -152,3 +152,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.1.0 | Fix nacking while reading multiple messages before it read same message multiple times, because of immediately nacking |
 | 1.2.0 | Write to exchange, but does not implement creating exchange on fly. |
 | 1.3.0 | Message persistence is set to true if durable parameter is true. |
+| 1.5.0 | Fix detecting if host name is changed and connection needs to be closed or reamin open. |
+

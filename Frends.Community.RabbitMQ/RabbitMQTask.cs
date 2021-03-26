@@ -15,10 +15,30 @@ namespace Frends.Community.RabbitMQ
         private static IConnection _connection = null;
         private static IModel _channel = null;
 
+        private static bool IsConnectionHostNameChanged(IConnection currentConnetion, string hostName, bool connectWithURI)
+        {
+            // if no current connection, host name is not changed
+            if (currentConnetion == null || currentConnetion.IsOpen == false)
+            {
+                return false;
+            }
+
+            if (connectWithURI)
+            {
+                var newUri = new Uri(hostName);
+                return (currentConnetion.Endpoint.HostName != newUri.Host);
+            }
+            
+            else // connect direct by host name
+            {
+                return (currentConnetion.Endpoint.HostName != hostName);
+            }
+        }
+
         private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
             //close connection if hostname has changed
-            if(_connection!=null && _connection.Endpoint.HostName != hostName)
+            if (IsConnectionHostNameChanged(_connection, hostName, connectWithURI)) 
             {
                 CloseConnection();
             }
