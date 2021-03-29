@@ -48,6 +48,7 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// RabbitMQ host name
         /// </summary>
+        [PasswordPropertyText]
         [DefaultValue("localhost")]
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
@@ -114,6 +115,7 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// RabbitMQ host name
         /// </summary>
+        [PasswordPropertyText]
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
@@ -175,6 +177,7 @@ namespace Frends.Community.RabbitMQ
         /// <summary>
         /// RabbitMQ host name
         /// </summary>
+        [PasswordPropertyText]
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
