@@ -229,9 +229,10 @@ namespace Frends.Community.RabbitMQ
         /// </summary>
         /// <param name="ackType"></param>
         /// <param name="deliveryTag"></param>
-        public static void AcknowledgeMessage(ManualAckType ackType, ulong deliveryTag)
+        /// <returns>boolean</returns>
+        public static bool AcknowledgeMessage(ManualAckType ackType, ulong deliveryTag)
         {
-            if (_channel == null)
+            if (_channel == null || _channel.IsClosed)
             {
                 // do not try to re-connect, because messages already nacked automatically
                 throw new Exception("No connection to RabbitMQ");
