@@ -104,7 +104,8 @@ namespace Frends.Community.RabbitMQ.Tests
                     new Header { Name = "Content-Encoding", Value = "content encoding" },
                     new Header { Name = "X-CorrelationId", Value = "correlation id" },
                     new Header { Name = "X-Expiration", Value = "expiration" },
-                    new Header { Name = "X-MessageId", Value = "message id" }
+                    new Header { Name = "X-MessageId", Value = "message id" },
+                    new Header { Name = "Custom-Header", Value = "custom header" }
                 }
             };
 
@@ -277,6 +278,7 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
             Assert.AreEqual("expiration", retVal.Messages[0].Headers["X-Expiration"]);
             Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
+            Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
         [Test]
@@ -298,6 +300,7 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
             Assert.AreEqual("expiration", retVal.Messages[0].Headers["X-Expiration"]);
             Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
+            Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
 

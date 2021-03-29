@@ -343,7 +343,7 @@ namespace Frends.Community.RabbitMQ
 
             if (basicProperties.IsHeadersPresent())
             {
-                basicProperties.Headers.ToList().ForEach(x => allHeaders[x.Key] = x.Value.ToString());
+                basicProperties.Headers.ToList().ForEach(x => allHeaders[x.Key] = Encoding.UTF8.GetString(x.Value as byte[]));
             }
 
             return allHeaders;
