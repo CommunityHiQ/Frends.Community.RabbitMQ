@@ -12,6 +12,14 @@ namespace Frends.Community.RabbitMQ
     /// </summary>
     public class RabbitMQTask
     {
+        private const string HEADER_APPID           = "X-AppId";
+        private const string HEADER_CLUSTERID       = "X-ClusterId";
+        private const string HEADER_CONTENTENCODING = "Content-Encoding";
+        private const string HEADER_CONTENTTYPE     = "Content-Type";
+        private const string HEADER_CORRELATIONID   = "X-CorrelationId";
+        private const string HEADER_EXPIRATION      = "X-Expiration";
+        private const string HEADER_MESSAGEID       = "X-MessageId";
+
         private static IConnection _connection = null;
         private static IModel _channel = null;
 
@@ -99,14 +107,9 @@ namespace Frends.Community.RabbitMQ
 
             }
 
-            IBasicProperties basicProperties = null;
-            if (inputParams.Durable == true)
-            {
-
-                basicProperties = _channel.CreateBasicProperties();
-                basicProperties.Persistent = true;
-
-            }
+            IBasicProperties basicProperties = _channel.CreateBasicProperties();
+            basicProperties.Persistent = inputParams.Durable;
+            AddHeadersToBasicProperties(basicProperties, inputParams.Headers);
 
             _channel.BasicPublish(exchange: inputParams.ExchangeName,
                                     routingKey: inputParams.RoutingKey,
@@ -132,7 +135,8 @@ namespace Frends.Community.RabbitMQ
                 HostName = inputParams.HostName,
                 ExchangeName = inputParams.ExchangeName,
                 QueueName = inputParams.QueueName,
-                RoutingKey = inputParams.RoutingKey
+                RoutingKey = inputParams.RoutingKey,
+                Headers = inputParams.Headers
             };
 
             return WriteMessage(wip);
@@ -143,7 +147,7 @@ namespace Frends.Community.RabbitMQ
         /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is byte[] encoded to base64 string
         /// </summary>
         /// <param name="inputParams"></param>
-        /// <returns>JSON structure with message contents</returns>
+        /// <returns>JSON structure with message contents: string Data, Dictionary(string,string) Headers, ulong DeliveryTag, uint MessageCount</returns>
         public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
             Output output = new Output();
@@ -161,7 +165,13 @@ namespace Frends.Community.RabbitMQ
                 var rcvMessage = _channel.BasicGet(queue: inputParams.QueueName, autoAck: inputParams.AutoAck == ReadAckType.AutoAck);
                 if (rcvMessage != null)
                 {
-                    output.Messages.Add(new Message { Data = Convert.ToBase64String(rcvMessage.Body), MessagesCount = rcvMessage.MessageCount, DeliveryTag = rcvMessage.DeliveryTag });
+                    output.Messages.Add(new Message
+                    {
+                        Data = Convert.ToBase64String(rcvMessage.Body),
+                        Headers = GetResponseHeaderDictionary(rcvMessage.BasicProperties),
+                        MessagesCount = rcvMessage.MessageCount,
+                        DeliveryTag = rcvMessage.DeliveryTag
+                    });
                 }
                 //break the loop if no more messagages are present
                 else
@@ -208,7 +218,7 @@ namespace Frends.Community.RabbitMQ
         /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is string converted from byte[] using UTF8 encoding
         /// </summary>
         /// <param name="inputParams"></param>
-        /// <returns>JSON structure with message contents</returns>
+        /// <returns>JSON structure with message contents: string Data, Dictionary(string,string) Headers, ulong DeliveryTag, uint MessageCount</returns>
         public static OutputString ReadMessageString([PropertyTab]ReadInputParams inputParams)
         {
             var messages = ReadMessage(inputParams);
@@ -218,7 +228,8 @@ namespace Frends.Community.RabbitMQ
               {
                   DeliveryTag = m.DeliveryTag,
                   MessagesCount = m.MessagesCount,
-                  Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data))
+                  Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data)),
+                  Headers = m.Headers
               }).ToList();
 
             return outString;
@@ -260,6 +271,82 @@ namespace Frends.Community.RabbitMQ
                     _channel.BasicReject(deliveryTag, requeue: true);
                     break;
             }
+
+            return true;
+        }
+
+        private static void AddHeadersToBasicProperties(IBasicProperties basicProperties, Header[] headers)
+        {
+            if (headers == null) return;
+
+            var messageHeaders = new Dictionary<string, object>();
+
+            headers.ToList().ForEach(header => {
+                switch (header.Name)
+                {
+                    case HEADER_APPID:
+                        basicProperties.AppId = header.Value;
+                        break;
+
+                    case HEADER_CLUSTERID:
+                        basicProperties.ClusterId = header.Value;
+                        break;
+
+                    case HEADER_CONTENTENCODING:
+                        basicProperties.ContentEncoding = header.Value;
+                        break;
+
+                    case HEADER_CONTENTTYPE:
+                        basicProperties.ContentType = header.Value;
+                        break;
+
+                    case HEADER_CORRELATIONID:
+                        basicProperties.CorrelationId = header.Value;
+                        break;
+
+                    case HEADER_EXPIRATION:
+                        basicProperties.Expiration = header.Value;
+                        break;
+
+                    case HEADER_MESSAGEID:
+                        basicProperties.MessageId = header.Value;
+                        break;
+
+                    default:
+                        messageHeaders.Add(header.Name, header.Value);
+                        break;
+                }
+            });
+
+            if (messageHeaders.Any())
+            {
+                basicProperties.Headers = messageHeaders;
+            }
+        }
+
+        private static Dictionary<string, string> GetResponseHeaderDictionary(IBasicProperties basicProperties)
+        {
+            if (basicProperties == null) return null;
+
+            var allHeaders = new Dictionary<string, string>()
+            {
+                { HEADER_APPID,             basicProperties.AppId },
+                { HEADER_CLUSTERID,         basicProperties.ClusterId },
+                { HEADER_CONTENTENCODING,   basicProperties.ContentEncoding },
+                { HEADER_CONTENTTYPE,       basicProperties.ContentType },
+                { HEADER_CORRELATIONID,     basicProperties.CorrelationId },
+                { HEADER_EXPIRATION,        basicProperties.Expiration },
+                { HEADER_MESSAGEID,         basicProperties.MessageId }
+            }
+            .Where(h => h.Value != null)
+            .ToDictionary(h => h.Key, h => h.Value);
+
+            if (basicProperties.IsHeadersPresent())
+            {
+                basicProperties.Headers.ToList().ForEach(x => allHeaders[x.Key] = x.Value.ToString());
+            }
+
+            return allHeaders;
         }
     }
 }

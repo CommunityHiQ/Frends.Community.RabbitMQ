@@ -20,6 +20,12 @@ namespace Frends.Community.RabbitMQ
         RejectAndRequeue
     }
 
+    public class Header
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
     /// <summary>
     /// Acknowledge type while reading message
     /// </summary>
@@ -137,6 +143,11 @@ namespace Frends.Community.RabbitMQ
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
         public bool Durable { get; set; }
+
+        /// <summary>
+        /// List of headers to be added to the request.
+        /// </summary>
+        public Header[] Headers { get; set; }
     }
 
     public class WriteInputParamsString
@@ -199,6 +210,11 @@ namespace Frends.Community.RabbitMQ
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
         public bool Durable { get; set; }
+
+        /// <summary>
+        /// List of headers to be added to the request.
+        /// </summary>
+        public Header[] Headers { get; set; }
     }
 
     public class Output
@@ -213,6 +229,7 @@ namespace Frends.Community.RabbitMQ
         /// Data in base64 format
         /// </summary>
         public string Data { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
         public uint MessagesCount { get; set; }
         public ulong DeliveryTag { get; set; }
     }
@@ -223,6 +240,7 @@ namespace Frends.Community.RabbitMQ
         /// Data in UTF8 string converted from byte[] array
         /// </summary>
         public string Data { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
         public uint MessagesCount { get; set; }
         public ulong DeliveryTag { get; set; }
     }
