@@ -166,8 +166,12 @@ namespace Frends.Community.RabbitMQ
                     basicProperties.Persistent = true;
                 }
 
+                var a = channel.MessageCount(inputParams.QueueName);
+
+                var b = ConcurrentDictionary;
+
                 // Add message into a memory based on producer write capability.
-                if (channel.MessageCount(inputParams.QueueName) <= inputParams.WriteMessageCount)
+                if (a < inputParams.WriteMessageCount)
                 {
                     CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Add(
                         exchange: inputParams.ExchangeName,
@@ -175,37 +179,38 @@ namespace Frends.Community.RabbitMQ
                         mandatory: true,
                         properties: basicProperties,
                         body: new ReadOnlyMemory<byte>(inputParams.Data));
-                    // return false;
+
+                    var c = inputParams.WriteMessageCount;
+
+                    if (ConcurrentDictionary.Count < 9)
+                        return false;
                 }
 
-                var a = channel.MessageCount(inputParams.QueueName);
-                // Commit under transaction when all of the messages have been received for the producer.
-                if (a == inputParams.WriteMessageCount)
-                {
-                    try
+
+
+                try
                     {
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
-                        channel.TxCommit();
-                        /*
-                         rollback only when exception is thrown
-                        if (channel.MessageCount(inputParams.QueueName) > 0)
-                        {
-                            channel.TxRollback();
-                            return false;
-                        }
-                        */
-                        DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
-                        return true;
-                    }
-                    catch (Exception)
+                    //channel.TxCommit();
+                    /*
+                     rollback only when exception is thrown
+                    if (channel.MessageCount(inputParams.QueueName) > 0)
                     {
                         channel.TxRollback();
                         return false;
                     }
-                }
-                else
+                    */
+                    //DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
+
+                    var d = channel.MessageCount(inputParams.QueueName);
+
+                    return true;
+                    }
+                catch (Exception)
                 {
+                    channel.TxRollback();
                     return false;
+                
                 }
             }
             finally
