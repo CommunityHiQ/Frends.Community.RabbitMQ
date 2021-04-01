@@ -213,7 +213,15 @@ namespace Frends.Community.RabbitMQ
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
         public bool Durable { get; set; }
-
+        
+        /// <summary>
+        /// Amount of seconds waiting for confirmation messages. 
+        /// </summary>
+        [DefaultValue(1)]
+        [DisplayFormat(DataFormatString = "Text")]
+        [DisplayName(@"Wait for acknowledgement in seconds")]
+        public int WaitForAcknowledgement { get; set; }
+        
     }
 
     public class WriteInputParamsString
@@ -321,12 +329,13 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
         /// <summary>
-        /// Amount of messages in the buffer under transaction which will be sent over the messaging channel as a chunk. 
+        /// Amount of messages in the buffer under acknoledgement which will be sent over the messaging channel as a chunk. 
         /// </summary>
         [DefaultValue(1)]
         [DisplayFormat(DataFormatString = "Text")]
         [DisplayName(@"Write message count")]
         public int WriteMessageCount { get; set; }
+
         /// <summary>
         /// Process execution id from the system 
         /// </summary>
