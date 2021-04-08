@@ -7,6 +7,7 @@ Frends task for operating on RabbitMQ queues. Supports reading and writing from 
   - [Write Message String](#writemessagestring)
   - [Read Message](#readmessage)
   - [Read Message String](#readmessagestring)
+  - [Acknowledge Message](#acknowledgemessage)
 - [License](#license)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -33,8 +34,14 @@ Tasks
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 | Create | bool | True to declare queue before writing | False to not declare it|
 | Durable | bool | Set durable option when creating queue |
+| Headers | Array { Name: string, Value: string }	| List of headers to be added to the message. [https://www.rabbitmq.com/publishers.html#message-properties]   | Setting charset parameter encodes message. `Name = "Content-Type", Value = "application/json"` |
+
 
 ## WriteMessageString
+
+### Task Parameters
+
+
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | string | Data to be put in message body| "abc"|
@@ -45,6 +52,7 @@ Tasks
 | ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
 | Create | bool | True to declare queue before writing | False to not declare it|
 | Durable | bool | Set durable option when creating queue |
+| Headers | Array { Name: string, Value: string }	| List of headers to be added to the message. [https://www.rabbitmq.com/publishers.html#message-properties]   | Setting charset parameter encodes message. `Name = "Content-Type", Value = "application/json"` |
 
 
 ## ReadMessage
@@ -70,12 +78,13 @@ Tasks
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | string (base64 encoded byte[]) | | |
+| Headers | Dictionary<string, string> | | |
 | MessageCount | uint | | |
 | DeliveryTag | ulong | | |
 
 ### Read message sample JSON
 
-{"Messages":[{"Data":"AAEC","MessagesCount":0,"DeliveryTag":1}]}
+{"Messages":[{"Data":"AAEC","Headers":[{"Content-Type":"text/plain"}],MessagesCount":0,"DeliveryTag":1}]}
 
 ## ReadMessageString
 
@@ -101,10 +110,19 @@ Tasks
 | Property             | Type                 | Description                          | Example |
 | ---------------------| ---------------------| ------------------------------------ | ----- |
 | Data | string (UTF8 converted byte[]) | | |
+| Headers | Dictionary<string, string> | | |
 | MessageCount | uint | | |
 | DeliveryTag | ulong | | |
 
 
+## AcknowledgeMessage
+
+### Task Parameters
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| ackType | enum | Set acknowledgement type: Ack, Nack, NackAndRequeue, Reject, RejectAndRequeue | ManualAckType.Ack |
+| deliveryTag | ulong | | |
 
 
 # License
@@ -153,4 +171,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.2.0 | Write to exchange, but does not implement creating exchange on fly. |
 | 1.3.0 | Message persistence is set to true if durable parameter is true. |
 | 1.5.0 | Fix detecting if host name is changed and connection needs to be closed or reamin open. |
+| 1.6.0 | Added header support to existing tasks and new task called AcknowledgeMessage. Host name is now secret as it might contain credentials. |
 

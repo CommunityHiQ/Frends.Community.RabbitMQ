@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Frends.Community.RabbitMQ.Tests
@@ -80,7 +81,8 @@ namespace Frends.Community.RabbitMQ.Tests
                 QueueName = "queue",
                 ConnectWithURI = false,
                 Create = false,
-                Durable = false
+                Durable = false,
+                Headers = null
             };
 
 
@@ -93,7 +95,18 @@ namespace Frends.Community.RabbitMQ.Tests
                 QueueName = "queue",
                 ConnectWithURI = false,
                 Create = false,
-                Durable = false
+                Durable = false,
+                Headers = new Header[]
+                {
+                    new Header { Name = "X-AppId", Value = "application id" },
+                    new Header { Name = "X-ClusterId", Value = "cluster id" },
+                    new Header { Name = "Content-Type", Value = "content type" },
+                    new Header { Name = "Content-Encoding", Value = "content encoding" },
+                    new Header { Name = "X-CorrelationId", Value = "correlation id" },
+                    new Header { Name = "X-Expiration", Value = "100" },
+                    new Header { Name = "X-MessageId", Value = "message id" },
+                    new Header { Name = "Custom-Header", Value = "custom header" }
+                }
             };
 
             _outputReadParams = new ReadInputParams
@@ -246,7 +259,7 @@ namespace Frends.Community.RabbitMQ.Tests
 
             RabbitMQTask.WriteMessage(_inputParameters);
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Headers.Count == 0);
         }
 
         [Test]
@@ -256,7 +269,16 @@ namespace Frends.Community.RabbitMQ.Tests
             RabbitMQTask.WriteMessageString(_inputParametersString);
             var retVal = RabbitMQTask.ReadMessageString(_outputReadParams);
 
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+            Assert.AreEqual("test message", retVal.Messages[0].Data);
+            Assert.AreEqual("application id", retVal.Messages[0].Headers["X-AppId"]);
+            Assert.AreEqual("cluster id", retVal.Messages[0].Headers["X-ClusterId"]);
+            Assert.AreEqual("content type", retVal.Messages[0].Headers["Content-Type"]);
+            Assert.AreEqual("content encoding", retVal.Messages[0].Headers["Content-Encoding"]);
+            Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
+            Assert.AreEqual("100", retVal.Messages[0].Headers["X-Expiration"]);
+            Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
+            Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
         [Test]
@@ -269,7 +291,16 @@ namespace Frends.Community.RabbitMQ.Tests
             RabbitMQTask.WriteMessageString(_inputParametersString);
 
             var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestUri, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Data == "test message");
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+            Assert.AreEqual("test message", retVal.Messages[0].Data);
+            Assert.AreEqual("application id", retVal.Messages[0].Headers["X-AppId"]);
+            Assert.AreEqual("cluster id", retVal.Messages[0].Headers["X-ClusterId"]);
+            Assert.AreEqual("content type", retVal.Messages[0].Headers["Content-Type"]);
+            Assert.AreEqual("content encoding", retVal.Messages[0].Headers["Content-Encoding"]);
+            Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
+            Assert.AreEqual("100", retVal.Messages[0].Headers["X-Expiration"]);
+            Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
+            Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
 
