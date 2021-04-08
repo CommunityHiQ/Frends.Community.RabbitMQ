@@ -103,7 +103,7 @@ namespace Frends.Community.RabbitMQ.Tests
                     new Header { Name = "Content-Type", Value = "content type" },
                     new Header { Name = "Content-Encoding", Value = "content encoding" },
                     new Header { Name = "X-CorrelationId", Value = "correlation id" },
-                    new Header { Name = "X-Expiration", Value = "expiration" },
+                    new Header { Name = "X-Expiration", Value = "100" },
                     new Header { Name = "X-MessageId", Value = "message id" },
                     new Header { Name = "Custom-Header", Value = "custom header" }
                 }
@@ -259,7 +259,7 @@ namespace Frends.Community.RabbitMQ.Tests
 
             RabbitMQTask.WriteMessage(_inputParameters);
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Headers == null);
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1 && retVal.Messages[0].Headers.Count == 0);
         }
 
         [Test]
@@ -276,7 +276,7 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("content type", retVal.Messages[0].Headers["Content-Type"]);
             Assert.AreEqual("content encoding", retVal.Messages[0].Headers["Content-Encoding"]);
             Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
-            Assert.AreEqual("expiration", retVal.Messages[0].Headers["X-Expiration"]);
+            Assert.AreEqual("100", retVal.Messages[0].Headers["X-Expiration"]);
             Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
             Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
@@ -298,7 +298,7 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("content type", retVal.Messages[0].Headers["Content-Type"]);
             Assert.AreEqual("content encoding", retVal.Messages[0].Headers["Content-Encoding"]);
             Assert.AreEqual("correlation id", retVal.Messages[0].Headers["X-CorrelationId"]);
-            Assert.AreEqual("expiration", retVal.Messages[0].Headers["X-Expiration"]);
+            Assert.AreEqual("100", retVal.Messages[0].Headers["X-Expiration"]);
             Assert.AreEqual("message id", retVal.Messages[0].Headers["X-MessageId"]);
             Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
