@@ -12,13 +12,16 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    
+    - name: set up docker
+      run: docker run -d --hostname my-rabbit -p 9080:15672 -p 5772:5672 -e RABBITMQ_DEFAULT_USER=agent -e RABBITMQ_DEFAULT_PASS=agent123  rabbitmq:3.7-management
 
     - name: Build
       run: dotnet build
     
     - name: Test
       env:
-        EXAMPLE_ENVIROMENT_VARIABLE:  ${{ secrets.EXAMPLE_ENVIROMENT_VARIABLE }}
+        HIQ_RABBITMQ_CONNECTIONSTRING:  ${{ secrets.HIQ_RABBITMQ_CONNECTIONSTRING }}
       run: dotnet test
       
     - name: Pack release version of task
