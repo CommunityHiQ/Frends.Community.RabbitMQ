@@ -20,8 +20,8 @@ namespace Frends.Community.RabbitMQ.Tests
     public class UnitTests
     {
 
-        //public const string TestURI = "amqp://user:password@hostname:port/vhost";
-        public static string TestUri = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
+        public const string TestUri = "amqp://agent:agent123@localhost:5772";
+        //public static string TestUri = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
         public static string TestHost = "localhost";
 
         private WriteInputParams _inputParameters = new WriteInputParams();
@@ -320,7 +320,8 @@ namespace Frends.Community.RabbitMQ.Tests
         {
             _inputBatchParameters.HostName = TestUri;
             _inputBatchParameters.ConnectWithURI = true;
-            _inputBatchParameters.WriteMessageCount = 2;
+            _inputBatchParameters.WriteMessageCount = 10;
+            _inputBatchParameters.WaitForAcknowledgement = 5;
 
 
             _outputReadParams.ConnectWithURI = true;
@@ -337,7 +338,7 @@ namespace Frends.Community.RabbitMQ.Tests
 
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
-            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() < 10);
         }
     }
 }

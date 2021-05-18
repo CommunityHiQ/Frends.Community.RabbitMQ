@@ -185,25 +185,14 @@ namespace Frends.Community.RabbitMQ
                 try
                     {
                         CreateBasicPublishBatch(inputParams.ProcessExecutionId, channel).Publish();
+                        channel.ConfirmSelect();
                         channel.WaitForConfirmsOrDie(new TimeSpan(0, 0, inputParams.WaitForAcknowledgement ));
-                        //channel.TxCommit();
-                        /*
-                         rollback only     when exception is thrown
-                        if (channel.MessageCount(inputParams.QueueName) > 0)
-                        {
-                            channel.TxRollback();
-                            return false;
-                        }
-                        */
-                        //DeleteBasicPublishBatch(inputParams.ProcessExecutionId);
-
-                        var d = channel.MessageCount(inputParams.QueueName);
-                        return true;
+                        var messageCount = channel.MessageCount(inputParams.QueueName);
+                        return messageCount == inputParams.WriteMessageCount;
                     }
                 catch (Exception)
                 {
                     channel.QueuePurge(inputParams.QueueName);
-                    //channel.TxRollback();
                     return false;
                 
                 }
@@ -287,7 +276,7 @@ namespace Frends.Community.RabbitMQ
                             DeliveryTag = rcvMessage.DeliveryTag
                         });
                     }
-                    //break the loop if no more messagages are present
+                    //break the loop if no more messages are present
                     else
                     {
                         break;
