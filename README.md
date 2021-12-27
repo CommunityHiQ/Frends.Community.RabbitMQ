@@ -172,4 +172,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.3.0 | Message persistence is set to true if durable parameter is true. |
 | 1.5.0 | Fix detecting if host name is changed and connection needs to be closed or reamin open. |
 | 1.6.0 | Added header support to existing tasks and new task called AcknowledgeMessage. Host name is now secret as it might contain credentials. |
-
+| 1.6.1 | Multitarget conversion and new CI. |

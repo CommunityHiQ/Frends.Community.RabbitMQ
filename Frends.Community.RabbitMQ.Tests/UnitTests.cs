@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Frends.Community.RabbitMQ.Tests
@@ -17,12 +16,9 @@ namespace Frends.Community.RabbitMQ.Tests
     /// </summary>
 
     [TestFixture]
-    // [Ignore("RabbitMQ is not installed on build server.")]
     public class UnitTests
     {
-
-        //public const string TestURI = "amqp://user:password@hostname:port/vhost";
-        public static string TestUri = Environment.GetEnvironmentVariable("HIQ_RABBITMQ_CONNECTIONSTRING");
+        public static string TestUri = "amqp://agent:agent123@localhost:5772";
         public static string TestHost = "localhost";
 
         private WriteInputParams _inputParameters = new WriteInputParams();

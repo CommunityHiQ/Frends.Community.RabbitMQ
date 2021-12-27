@@ -8,7 +8,7 @@ using System.Linq;
 namespace Frends.Community.RabbitMQ
 {
     /// <summary>
-    /// Collection of tasks for interfacing with RabbitMQ
+    /// Collection of tasks for interfacing with RabbitMQ.
     /// </summary>
     public class RabbitMQTask
     {
@@ -25,7 +25,7 @@ namespace Frends.Community.RabbitMQ
 
         private static bool IsConnectionHostNameChanged(IConnection currentConnetion, string hostName, bool connectWithURI)
         {
-            // if no current connection, host name is not changed
+            // If no current connection, host name is not changed
             if (currentConnetion == null || currentConnetion.IsOpen == false)
             {
                 return false;
@@ -37,7 +37,7 @@ namespace Frends.Community.RabbitMQ
                 return (currentConnetion.Endpoint.HostName != newUri.Host);
             }
             
-            else // connect direct by host name
+            else // Connect direct by host name.
             {
                 return (currentConnetion.Endpoint.HostName != hostName);
             }
@@ -45,7 +45,7 @@ namespace Frends.Community.RabbitMQ
 
         private static void OpenConnectionIfClosed(string hostName, bool connectWithURI)
         {
-            //close connection if hostname has changed
+            // Close connection if hostname has changed.
             if (IsConnectionHostNameChanged(_connection, hostName, connectWithURI)) 
             {
                 CloseConnection();
@@ -74,7 +74,7 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Closes connection and channel to RabbitMQ
+        /// Closes connection and channel to RabbitMQ.
         /// </summary>
         public static void CloseConnection()
         {
@@ -90,7 +90,7 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Writes message to a queue
+        /// Writes message to a queue.
         /// </summary>
         /// <param name="inputParams"></param>
         public static bool WriteMessage([PropertyTab]WriteInputParams inputParams)
@@ -107,7 +107,7 @@ namespace Frends.Community.RabbitMQ
 
             }
 
-            IBasicProperties basicProperties = _channel.CreateBasicProperties();
+            var basicProperties = _channel.CreateBasicProperties();
             basicProperties.Persistent = inputParams.Durable;
             AddHeadersToBasicProperties(basicProperties, inputParams.Headers);
 
@@ -120,13 +120,13 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Writes message to queue. Message is a string and there is internal conversion from string to byte[] using UTF8 encoding
+        /// Writes message to queue. Message is a string and there is internal conversion from string to byte[] using UTF8 encoding.
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns></returns>
         public static bool WriteMessageString([PropertyTab]WriteInputParamsString inputParams)
         {
-            WriteInputParams wip = new WriteInputParams
+            var wip = new WriteInputParams
             {
                 ConnectWithURI = inputParams.ConnectWithURI,
                 Create = inputParams.Create,
@@ -144,21 +144,15 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is byte[] encoded to base64 string
+        /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is byte[] encoded to base64 string.
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns>JSON structure with message contents: string Data, Dictionary(string,string) Headers, ulong DeliveryTag, uint MessageCount</returns>
         public static Output ReadMessage([PropertyTab]ReadInputParams inputParams)
         {
-            Output output = new Output();
+            var output = new Output();
 
             OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
-
-            //channel.QueueDeclare(queue: inputParams.QueueName,
-            //             durable: false,
-            //             exclusive: false,
-            //             autoDelete: false,
-            //             arguments: null);
 
             while (inputParams.ReadMessageCount-- > 0)
             {
@@ -173,17 +167,17 @@ namespace Frends.Community.RabbitMQ
                         DeliveryTag = rcvMessage.DeliveryTag
                     });
                 }
-                //break the loop if no more messagages are present
+                // Break the loop if no more messagages are present.
                 else
                 {
                     break;
                 }
             }
 
-            // Auto acking
+            // Auto acking.
             if (inputParams.AutoAck != ReadAckType.AutoAck && inputParams.AutoAck != ReadAckType.ManualAck)
             {
-                ManualAckType ackType = ManualAckType.NackAndRequeue;
+                var ackType = ManualAckType.NackAndRequeue;
 
                 switch (inputParams.AutoAck)
                 {
@@ -215,22 +209,24 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
-        /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is string converted from byte[] using UTF8 encoding
+        /// Reads message(s) from a queue. Returns JSON structure with message contents. Message data is string converted from byte[] using UTF8 encoding.
         /// </summary>
         /// <param name="inputParams"></param>
         /// <returns>JSON structure with message contents: string Data, Dictionary(string,string) Headers, ulong DeliveryTag, uint MessageCount</returns>
         public static OutputString ReadMessageString([PropertyTab]ReadInputParams inputParams)
         {
             var messages = ReadMessage(inputParams);
-            OutputString outString = new OutputString();
-            outString.Messages = messages.Messages.Select(m =>
-              new MessageString
-              {
-                  DeliveryTag = m.DeliveryTag,
-                  MessagesCount = m.MessagesCount,
-                  Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data)),
-                  Headers = m.Headers
-              }).ToList();
+            OutputString outString = new OutputString
+            {
+                Messages = messages.Messages.Select(m =>
+                  new MessageString
+                  {
+                      DeliveryTag = m.DeliveryTag,
+                      MessagesCount = m.MessagesCount,
+                      Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data)),
+                      Headers = m.Headers
+                  }).ToList()
+            };
 
             return outString;
         }
@@ -245,7 +241,7 @@ namespace Frends.Community.RabbitMQ
         {
             if (_channel == null || _channel.IsClosed)
             {
-                // do not try to re-connect, because messages already nacked automatically
+                // Do not try to re-connect, because messages already nacked automatically.
                 throw new Exception("No connection to RabbitMQ");
             }
 

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+#pragma warning disable CS1591
 
 namespace Frends.Community.RabbitMQ
 {
     /// <summary>
-    /// Acknowledge type for manual operation
+    /// Acknowledge type for manual operation.
     /// </summary>
     public enum ManualAckType
     {
@@ -27,7 +25,7 @@ namespace Frends.Community.RabbitMQ
     }
 
     /// <summary>
-    /// Acknowledge type while reading message
+    /// Acknowledge type while reading message.
     /// </summary>
     public enum ReadAckType
     {
@@ -40,19 +38,19 @@ namespace Frends.Community.RabbitMQ
     }
 
     /// <summary>
-    /// Collection of read message parameters
+    /// Collection of read message parameters.
     /// </summary>
     public class ReadInputParams
     {
         /// <summary>
-        /// Name of the queue
+        /// Name of the queue.
         /// </summary>
         [DefaultValue("sampleQueue")]
         [DisplayName(@"Queue name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string QueueName { get; set; }
         /// <summary>
-        /// RabbitMQ host name
+        /// RabbitMQ host name.
         /// </summary>
         [PasswordPropertyText]
         [DefaultValue("localhost")]
@@ -60,7 +58,7 @@ namespace Frends.Community.RabbitMQ
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
         /// <summary>
-        /// Maximum number of messages to read
+        /// Maximum number of messages to read.
         /// </summary>
         [DefaultValue(1)]
         [DisplayName(@"Read message count")]
@@ -72,7 +70,7 @@ namespace Frends.Community.RabbitMQ
         [DisplayName(@"Auto ack")]
         public ReadAckType AutoAck { get; set; }
         /// <summary>
-        /// Use URI instead of a hostname
+        /// Use URI instead of a hostname.
         /// </summary>
         [DefaultValue(false)]
         [DisplayName(@"Use URI for connection")]
@@ -80,65 +78,65 @@ namespace Frends.Community.RabbitMQ
     }
 
     /// <summary>
-    /// Collection of write message parameters
+    /// Collection of write message parameters.
     /// </summary>
     public class WriteInputParams
     {
 
         public WriteInputParams()
         {
-            ExchangeName = String.Empty;
-            RoutingKey = String.Empty;
+            ExchangeName = string.Empty;
+            RoutingKey = string.Empty;
         }
 
         /// <summary>
-        /// Data payload
+        /// Data payload.
         /// </summary>
         [DisplayName(@"Data")]
         [DisplayFormat(DataFormatString = "Expression")]
         public byte[] Data { get; set; }
         /// <summary>
-        /// Name of the exchange e.g. sampleExchange
+        /// Name of the exchange e.g. sampleExchange.
         /// </summary>
         [DefaultValue("")]
         [DisplayName(@"Exchange name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string ExchangeName { get; set; }
         /// <summary>
-        /// Name of the queue
+        /// Name of the queue.
         /// </summary>
         [DefaultValue("sampleQueue")]
         [DisplayName(@"Queue name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string QueueName { get; set; }
         /// <summary>
-        /// Routing key name
+        /// Routing key name.
         /// </summary>
         [DefaultValue("sampleQueue")]
         [DisplayName(@"Routing key")]
         [DisplayFormat(DataFormatString = "Text")]
         public string RoutingKey { get; set; }
         /// <summary>
-        /// RabbitMQ host name
+        /// RabbitMQ host name.
         /// </summary>
         [PasswordPropertyText]
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
         /// <summary>
-        /// Use URI instead of a hostname
+        /// Use URI instead of a hostname.
         /// </summary>
         [DefaultValue(false)]
         [DisplayName(@"Use URI for connection")]
         public bool ConnectWithURI { get; set; }
         /// <summary>
-        /// True to declare queue when writing
+        /// True to declare queue when writing.
         /// </summary>
         [DefaultValue(false)]
         [DisplayName(@"True to declare queue before writing. False to not declare it")]
         public bool Create { get; set; }
         /// <summary>
-		/// Durable option when creating queue
+		/// Durable option when creating queue.
 		/// </summary>
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
@@ -154,58 +152,58 @@ namespace Frends.Community.RabbitMQ
     {
         public WriteInputParamsString()
         {
-            ExchangeName = String.Empty;
-            RoutingKey = String.Empty;
+            ExchangeName = string.Empty;
+            RoutingKey = string.Empty;
         }
 
         /// <summary>
-        /// Data payload in string. Will be internally converted to byte array using UTF8.Convert method
+        /// Data payload in string. Will be internally converted to byte array using UTF8.Convert method.
         /// </summary>
         [DisplayName(@"Data")]
         [DisplayFormat(DataFormatString = "Text")]
         public string Data { get; set; }
         /// <summary>
-        /// Name of the exchange
+        /// Name of the exchange.
         /// </summary>
         [DefaultValue("sampleExchange")]
         [DisplayName(@"Exchange name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string ExchangeName { get; set; }
         /// <summary>
-        /// Name of the queue
+        /// Name of the queue.
         /// </summary>
         [DefaultValue("sampleQueue")]
         [DisplayName(@"Queue name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string QueueName { get; set; }
         /// <summary>
-        /// Routing key name
+        /// Routing key name.
         /// </summary>
         [DefaultValue("sampleQueue")]
         [DisplayName(@"Routing key")]
         [DisplayFormat(DataFormatString = "Text")]
         public string RoutingKey { get; set; }
         /// <summary>
-        /// RabbitMQ host name
+        /// RabbitMQ host name.
         /// </summary>
         [PasswordPropertyText]
         [DisplayName(@"Host name")]
         [DisplayFormat(DataFormatString = "Text")]
         public string HostName { get; set; }
         /// <summary>
-        /// Use URI instead of a hostname
+        /// Use URI instead of a hostname.
         /// </summary>
         [DefaultValue(false)]
         [DisplayName(@"Use URI for connection")]
         public bool ConnectWithURI { get; set; }
         /// <summary>
-        /// True to declare queue when writing
+        /// True to declare queue when writing.
         /// </summary>
         [DefaultValue(false)]
         [DisplayName(@"True to declare queue before writing. False to not declare it")]
         public bool Create { get; set; }
         /// <summary>
-		/// Durable option when creating queue
+		/// Durable option when creating queue.
 		/// </summary>
 		[DefaultValue(true)]
         [DisplayName(@"Set durable option when creating queue")]
@@ -226,7 +224,7 @@ namespace Frends.Community.RabbitMQ
     public class Message
     {
         /// <summary>
-        /// Data in base64 format
+        /// Data in base64 format.
         /// </summary>
         public string Data { get; set; }
         public Dictionary<string, string> Headers { get; set; }
@@ -237,7 +235,7 @@ namespace Frends.Community.RabbitMQ
     public class MessageString
     {
         /// <summary>
-        /// Data in UTF8 string converted from byte[] array
+        /// Data in UTF8 string converted from byte[] array.
         /// </summary>
         public string Data { get; set; }
         public Dictionary<string, string> Headers { get; set; }
