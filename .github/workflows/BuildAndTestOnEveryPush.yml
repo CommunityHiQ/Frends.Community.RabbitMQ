@@ -12,6 +12,9 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+
+    - name: Switch to Linux Containers
+      run: & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon
     
     - name: set up docker
       run: docker run -d --hostname my-rabbit -p 9080:15672 -p 5772:5672 -e RABBITMQ_DEFAULT_USER=agent -e RABBITMQ_DEFAULT_PASS=agent123  rabbitmq:3.7-management
