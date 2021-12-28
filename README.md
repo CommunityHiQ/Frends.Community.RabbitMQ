@@ -129,7 +129,7 @@ Tasks
 
 # License
 
-This project is licensed under the MIT License - see the LICENSE file for details
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 # Building
 
@@ -137,19 +137,17 @@ Clone a copy of the repo
 
 `git clone https://github.com/CommunityHiQ/Frends.Community.RabbitMQ.git`
 
-Restore dependencies
+Build the project.
 
-`nuget restore frends.community.rabbitmq`
+`dotnet build`
 
-Rebuild the project
+Run Tests.
 
-Run Tests with nunit3. Tests can be found under
+`dotnet test`
 
-`Frends.Community.Email.Tests\bin\Release\Frends.Community.RabbitMQ.Tests.dll`
+Create a nuget package.
 
-Create a nuget package
-
-`nuget pack nuspec/Frends.Community.RabbitMQ.nuspec`
+`dotnet pack --configuration Release`
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
@@ -176,3 +174,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.6.0 | Added header support to existing tasks and new task called AcknowledgeMessage. Host name is now secret as it might contain credentials. |
 | 1.6.1 | Multitarget conversion and new CI. |
 | 1.6.2 | Badges added to README. |
+| 1.6.3 | Updated README with correct buld/test/pack instructions. |
