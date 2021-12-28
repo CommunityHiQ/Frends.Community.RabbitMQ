@@ -1,6 +1,8 @@
 # Frends.Community.RabbitMQ
 Frends task for operating on RabbitMQ queues. Supports reading and writing from queue.
 
+[![Actions Status](https://github.com/CommunityHiQ/Frends.Community.RabbitMQ/workflows/PackAndPushAfterMerge/badge.svg)](https://github.com/CommunityHiQ/Frends.Community.RabbitMQ/actions) ![MyGet](https://img.shields.io/myget/frends-community/v/Frends.Community.RabbitMQ) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+
 - [Installing](#installing)
 - [Tasks](#tasks)
   - [Write Message](#writemessage)
@@ -173,3 +175,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.5.0 | Fix detecting if host name is changed and connection needs to be closed or reamin open. |
 | 1.6.0 | Added header support to existing tasks and new task called AcknowledgeMessage. Host name is now secret as it might contain credentials. |
 | 1.6.1 | Multitarget conversion and new CI. |
+| 1.6.2 | Badges added to README. |
