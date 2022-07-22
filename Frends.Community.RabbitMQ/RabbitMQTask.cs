@@ -232,6 +232,18 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
+        /// Reads message count in the queue. Throws exception on error.
+        /// </summary>
+        /// <param name="inputParams"></param>
+        /// <returns>uint</returns>
+        public static uint MessageCount([PropertyTab] QueueInputParams inputParams)
+        {
+            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+
+            return _channel.MessageCount(inputParams.QueueName);
+        }
+
+        /// <summary>
         /// Acknowledges received message. Throws exception on error.
         /// </summary>
         /// <param name="ackType"></param>

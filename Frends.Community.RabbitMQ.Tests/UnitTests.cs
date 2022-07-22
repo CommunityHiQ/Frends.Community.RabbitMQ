@@ -85,8 +85,6 @@ namespace Frends.Community.RabbitMQ.Tests
                 Headers = null
             };
 
-
-
             _inputParametersString = new WriteInputParamsString
             {
                 Data = "test message",
@@ -123,6 +121,10 @@ namespace Frends.Community.RabbitMQ.Tests
         public void TestWriteRead()
         {
             RabbitMQTask.WriteMessage(_inputParameters);
+
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(1, messageCount);
+
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
@@ -137,6 +139,10 @@ namespace Frends.Community.RabbitMQ.Tests
                 _inputParameters.Data = new byte[] { 0, (byte)(i * i) };
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
+
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
+
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
@@ -157,8 +163,11 @@ namespace Frends.Community.RabbitMQ.Tests
 
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
@@ -171,10 +180,12 @@ namespace Frends.Community.RabbitMQ.Tests
             _outputReadParams.ConnectWithURI = true;
             _outputReadParams.HostName = TestUri;
 
-
             RabbitMQTask.WriteMessage(_inputParameters);
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(1, messageCount);
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
@@ -221,8 +232,10 @@ namespace Frends.Community.RabbitMQ.Tests
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
 
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
