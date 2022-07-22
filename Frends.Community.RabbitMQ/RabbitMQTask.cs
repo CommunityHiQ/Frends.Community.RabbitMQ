@@ -81,11 +81,13 @@ namespace Frends.Community.RabbitMQ
             if (_channel != null)
             {
                 _channel.Close();
+                _channel.Dispose();
             }
 
             if (_connection != null)
             {
                 _connection.Close();
+                _connection.Dispose();
             }
         }
 
