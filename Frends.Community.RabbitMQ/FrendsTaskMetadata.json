@@ -1,0 +1,19 @@
+﻿{
+	"Tasks": [
+		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.WriteMessage"
+		},
+		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.WriteMessageString"
+		},
+		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.ReadMessage"
+		},
+		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString"
+		},
+		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.AcknowledgeMessage"
+		}
+	]
+}
