@@ -175,3 +175,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.6.1 | Multitarget conversion and new CI. |
 | 1.6.2 | Badges added to README. |
 | 1.6.3 | Updated README with correct buld/test/pack instructions. |
+| 1.6.4 | Fix crashes while reading message without headers and headers not a string type. |
+
