@@ -353,7 +353,11 @@ namespace Frends.Community.RabbitMQ
 
             if (basicProperties.IsHeadersPresent())
             {
-                basicProperties.Headers.ToList().ForEach(x => allHeaders[x.Key] = (x.Value != null ? Encoding.UTF8.GetString(x.Value as byte[]) : null));
+                // May be it is a bug in RabbitMQ Client library, but when publishing messages without headers in RabbitMQ Management UI,
+                // basicProperties.IsHeadersPresent() returns true, but basicProperties.Headers is null
+                basicProperties.Headers?.ToList()
+                    /* Supporting only string headers */
+                    .ForEach(x => allHeaders[x.Key] = (x.Value != null && x.Value is byte[]) ? Encoding.UTF8.GetString(x.Value as byte[]) : null);
             }
 
             return allHeaders;
