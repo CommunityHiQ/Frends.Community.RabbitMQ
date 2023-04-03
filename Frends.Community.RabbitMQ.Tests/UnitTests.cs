@@ -280,7 +280,6 @@ namespace Frends.Community.RabbitMQ.Tests
         [Test]
         public void TestWriteReadStringToExchange()
         {
-
             _inputParametersString.QueueName = null;
             _inputParametersString.ExchangeName = "exchange";
 
@@ -299,6 +298,40 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
+        [Test]
+        public void TestWriteReadWithUriAndNullHeaderToExchange()
+        {
+            var writeParams = new WriteInputParamsString
+            {
+                Data = "test message",
+                HostName = TestUri,
+                RoutingKey = "queue",
+                ExchangeName = "exchange",
+                ConnectWithURI = true,
+                Create = false,
+                Durable = false,
+                Headers = new Header[] 
+                { 
+                    new Header { Name = "Null-Header", Value = null }
+                }
+            };
+
+            var readParams = new ReadInputParams
+            {
+                HostName = TestUri,
+                QueueName = "queue",
+                AutoAck = ReadAckType.AutoAck,
+                ReadMessageCount = 1000,
+                ConnectWithURI = true
+            };
+
+            RabbitMQTask.WriteMessageString(writeParams);
+
+            var retVal = RabbitMQTask.ReadMessageString(readParams);
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+            Assert.AreEqual(1, retVal.Messages[0].Headers.Count);
+            Assert.AreEqual(null, retVal.Messages[0].Headers["Null-Header"]);
+        }
 
         /// <summary>
         /// Used for debugging, if connection is closed and opened for new hostname
