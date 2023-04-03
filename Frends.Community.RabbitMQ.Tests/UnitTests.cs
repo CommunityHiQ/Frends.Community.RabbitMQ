@@ -34,7 +34,7 @@ namespace Frends.Community.RabbitMQ.Tests
         public void DeleteExchangeAndQueue()
         {
             var factory = new ConnectionFactory
-        {
+            {
                 Uri = new Uri(TestUri)
             };
 
@@ -55,7 +55,7 @@ namespace Frends.Community.RabbitMQ.Tests
         public void CreateExchangeAndQueue()
         {
             var factory = new ConnectionFactory
-        {
+            {
                 Uri = new Uri(TestUri)
             };
 

@@ -219,13 +219,13 @@ namespace Frends.Community.RabbitMQ
             OutputString outString = new OutputString
             {
                 Messages = messages.Messages.Select(m =>
-              new MessageString
-              {
-                  DeliveryTag = m.DeliveryTag,
-                  MessagesCount = m.MessagesCount,
-                      Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data)),
-                      Headers = m.Headers
-                  }).ToList()
+                    new MessageString
+                    {
+                        DeliveryTag = m.DeliveryTag,
+                        MessagesCount = m.MessagesCount,
+                        Data = Encoding.UTF8.GetString(Convert.FromBase64String(m.Data)),
+                        Headers = m.Headers
+                    }).ToList()
             };
 
             return outString;
