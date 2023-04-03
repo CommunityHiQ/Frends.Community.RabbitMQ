@@ -13,6 +13,9 @@
 			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.ReadMessageString"
 		},
 		{
+			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.MessageCount"
+		},
+		{
 			"TaskMethod": "Frends.Community.RabbitMQ.RabbitMQTask.AcknowledgeMessage"
 		}
 	]

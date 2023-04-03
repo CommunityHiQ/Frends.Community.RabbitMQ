@@ -38,6 +38,34 @@ namespace Frends.Community.RabbitMQ
     }
 
     /// <summary>
+    /// Collection of queue parameters.
+    /// </summary>
+    public class QueueInputParams
+    {
+        /// <summary>
+        /// Name of the queue.
+        /// </summary>
+        [DefaultValue("sampleQueue")]
+        [DisplayName(@"Queue name")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string QueueName { get; set; }
+        /// <summary>
+        /// RabbitMQ host name.
+        /// </summary>
+        [PasswordPropertyText]
+        [DefaultValue("localhost")]
+        [DisplayName(@"Host name")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string HostName { get; set; }
+        /// <summary>
+        /// Use URI instead of a hostname.
+        /// </summary>
+        [DefaultValue(false)]
+        [DisplayName(@"Use URI for connection")]
+        public bool ConnectWithURI { get; set; }
+    }
+
+    /// <summary>
     /// Collection of read message parameters.
     /// </summary>
     public class ReadInputParams
@@ -75,6 +103,20 @@ namespace Frends.Community.RabbitMQ
         [DefaultValue(false)]
         [DisplayName(@"Use URI for connection")]
         public bool ConnectWithURI { get; set; }
+
+        /// <summary>
+        /// Converts ReadInputParams to QueueInputParams
+        /// </summary>
+        /// <returns>QueueInputParams</returns>
+        public QueueInputParams MakeQueueInputParams()
+        {
+            return new QueueInputParams
+            { 
+                HostName = this.HostName, 
+                QueueName = this.QueueName, 
+                ConnectWithURI = this.ConnectWithURI
+            };
+        }
     }
 
     /// <summary>

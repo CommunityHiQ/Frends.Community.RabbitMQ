@@ -160,3 +160,4 @@ $RECYCLE.BIN/
 #Nuget packages - will be automatically restored
 packages
 
+*.bak

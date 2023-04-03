@@ -21,6 +21,10 @@ namespace Frends.Community.RabbitMQ.Tests
         public static string TestUri = "amqp://agent:agent123@localhost:5772";
         public static string TestHost = "localhost";
 
+        private readonly string _exchangeName = "exchange";
+        private readonly string _queueName = "queue";
+        private readonly string _routingKey = "queue";
+
         private WriteInputParams _inputParameters = new WriteInputParams();
         private WriteInputParamsString _inputParametersString = new WriteInputParamsString();
 
@@ -42,8 +46,8 @@ namespace Frends.Community.RabbitMQ.Tests
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDelete("queue", false, false);
-                    channel.ExchangeDelete("exchange", ifUnused: false);
+                    channel.QueueDelete(_queueName, false, false);
+                    channel.ExchangeDelete(_exchangeName, ifUnused: false);
                 }
             }
         }
@@ -63,9 +67,9 @@ namespace Frends.Community.RabbitMQ.Tests
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.ExchangeDeclare("exchange", type: "fanout", durable: false, autoDelete: false);
-                    channel.QueueDeclare("queue", durable: false, exclusive: false, autoDelete: false);
-                    channel.QueueBind("queue", "exchange", routingKey: "");
+                    channel.ExchangeDeclare(_exchangeName, type: "fanout", durable: false, autoDelete: false);
+                    channel.QueueDeclare(_queueName, durable: false, exclusive: false, autoDelete: false);
+                    channel.QueueBind(_queueName, _exchangeName, routingKey: "");
                 }
             }
 
@@ -73,22 +77,20 @@ namespace Frends.Community.RabbitMQ.Tests
             {
                 Data = new byte[] { 0, 1, 2 },
                 HostName = TestHost,
-                RoutingKey = "queue",
-                QueueName = "queue",
+                RoutingKey = _routingKey,
+                QueueName = _queueName,
                 ConnectWithURI = false,
                 Create = false,
                 Durable = false,
                 Headers = null
             };
 
-
-
             _inputParametersString = new WriteInputParamsString
             {
                 Data = "test message",
                 HostName = TestHost,
-                RoutingKey = "queue",
-                QueueName = "queue",
+                RoutingKey = _routingKey,
+                QueueName = _queueName,
                 ConnectWithURI = false,
                 Create = false,
                 Durable = false,
@@ -108,7 +110,7 @@ namespace Frends.Community.RabbitMQ.Tests
             _outputReadParams = new ReadInputParams
             {
                 HostName = TestHost,
-                QueueName = "queue",
+                QueueName = _queueName,
                 AutoAck = ReadAckType.AutoAck,
                 ReadMessageCount = 1,
                 ConnectWithURI = false
@@ -119,6 +121,10 @@ namespace Frends.Community.RabbitMQ.Tests
         public void TestWriteRead()
         {
             RabbitMQTask.WriteMessage(_inputParameters);
+
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(1, messageCount);
+
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
@@ -133,6 +139,10 @@ namespace Frends.Community.RabbitMQ.Tests
                 _inputParameters.Data = new byte[] { 0, (byte)(i * i) };
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
+
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
+
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
@@ -153,8 +163,11 @@ namespace Frends.Community.RabbitMQ.Tests
 
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
@@ -167,10 +180,12 @@ namespace Frends.Community.RabbitMQ.Tests
             _outputReadParams.ConnectWithURI = true;
             _outputReadParams.HostName = TestUri;
 
-
             RabbitMQTask.WriteMessage(_inputParameters);
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
 
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(1, messageCount);
+
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
         }
 
@@ -217,8 +232,10 @@ namespace Frends.Community.RabbitMQ.Tests
                 RabbitMQTask.WriteMessage(_inputParameters);
             }
 
-            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
+            uint messageCount = RabbitMQTask.MessageCount(_outputReadParams.MakeQueueInputParams());
+            Assert.AreEqual(10, messageCount);
 
+            var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 10);
         }
 
@@ -251,7 +268,7 @@ namespace Frends.Community.RabbitMQ.Tests
         {
 
             _inputParameters.QueueName = null;
-            _inputParameters.ExchangeName = "exchange";
+            _inputParameters.ExchangeName = _exchangeName;
 
             RabbitMQTask.WriteMessage(_inputParameters);
             var retVal = RabbitMQTask.ReadMessage(_outputReadParams);
@@ -280,13 +297,12 @@ namespace Frends.Community.RabbitMQ.Tests
         [Test]
         public void TestWriteReadStringToExchange()
         {
-
             _inputParametersString.QueueName = null;
-            _inputParametersString.ExchangeName = "exchange";
+            _inputParametersString.ExchangeName = _exchangeName;
 
             RabbitMQTask.WriteMessageString(_inputParametersString);
 
-            var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestUri, QueueName = "queue", AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
+            var retVal = RabbitMQTask.ReadMessageString(new ReadInputParams { HostName = TestUri, QueueName = _queueName, AutoAck = ReadAckType.AutoAck, ReadMessageCount = 1000, ConnectWithURI = true });
             Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
             Assert.AreEqual("test message", retVal.Messages[0].Data);
             Assert.AreEqual("application id", retVal.Messages[0].Headers["X-AppId"]);
@@ -299,6 +315,40 @@ namespace Frends.Community.RabbitMQ.Tests
             Assert.AreEqual("custom header", retVal.Messages[0].Headers["Custom-Header"]);
         }
 
+        [Test]
+        public void TestWriteReadWithUriAndNullHeaderToExchange()
+        {
+            var writeParams = new WriteInputParamsString
+            {
+                Data = "test message",
+                HostName = TestUri,
+                RoutingKey = "queue",
+                ExchangeName = "exchange",
+                ConnectWithURI = true,
+                Create = false,
+                Durable = false,
+                Headers = new Header[] 
+                { 
+                    new Header { Name = "Null-Header", Value = null }
+                }
+            };
+
+            var readParams = new ReadInputParams
+            {
+                HostName = TestUri,
+                QueueName = "queue",
+                AutoAck = ReadAckType.AutoAck,
+                ReadMessageCount = 1000,
+                ConnectWithURI = true
+            };
+
+            RabbitMQTask.WriteMessageString(writeParams);
+
+            var retVal = RabbitMQTask.ReadMessageString(readParams);
+            Assert.IsTrue(retVal != null && retVal.Messages.Count() == 1);
+            Assert.AreEqual(1, retVal.Messages[0].Headers.Count);
+            Assert.AreEqual(null, retVal.Messages[0].Headers["Null-Header"]);
+        }
 
         /// <summary>
         /// Used for debugging, if connection is closed and opened for new hostname
@@ -307,8 +357,8 @@ namespace Frends.Community.RabbitMQ.Tests
         [Ignore("This test is actually used for debugging while developing task.")]
         public void TestChangingHostName()
         {
-            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "amqp://localhost", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = true, Create = false, Durable = false });
-            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = "exchange", RoutingKey = "queue", ConnectWithURI = false, Create = false, Durable = false });
+            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "amqp://localhost", ExchangeName = _exchangeName, RoutingKey = _queueName, ConnectWithURI = true, Create = false, Durable = false });
+            RabbitMQTask.WriteMessageString(new WriteInputParamsString { Data = "test message", HostName = "localhost2", ExchangeName = _exchangeName, RoutingKey = _queueName, ConnectWithURI = false, Create = false, Durable = false });
 
             Assert.IsTrue(true);
         }

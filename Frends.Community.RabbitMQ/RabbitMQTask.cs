@@ -81,11 +81,13 @@ namespace Frends.Community.RabbitMQ
             if (_channel != null)
             {
                 _channel.Close();
+                _channel.Dispose();
             }
 
             if (_connection != null)
             {
                 _connection.Close();
+                _connection.Dispose();
             }
         }
 
@@ -232,6 +234,18 @@ namespace Frends.Community.RabbitMQ
         }
 
         /// <summary>
+        /// Reads message count in the queue. Throws exception on error.
+        /// </summary>
+        /// <param name="inputParams"></param>
+        /// <returns>uint</returns>
+        public static uint MessageCount([PropertyTab] QueueInputParams inputParams)
+        {
+            OpenConnectionIfClosed(inputParams.HostName, inputParams.ConnectWithURI);
+
+            return _channel.MessageCount(inputParams.QueueName);
+        }
+
+        /// <summary>
         /// Acknowledges received message. Throws exception on error.
         /// </summary>
         /// <param name="ackType"></param>
@@ -339,7 +353,11 @@ namespace Frends.Community.RabbitMQ
 
             if (basicProperties.IsHeadersPresent())
             {
-                basicProperties.Headers.ToList().ForEach(x => allHeaders[x.Key] = Encoding.UTF8.GetString(x.Value as byte[]));
+                // May be it is a bug in RabbitMQ Client library, but when publishing messages without headers in RabbitMQ Management UI,
+                // basicProperties.IsHeadersPresent() returns true, but basicProperties.Headers is null
+                basicProperties.Headers?.ToList()
+                    /* Supporting only string headers */
+                    .ForEach(x => allHeaders[x.Key] = (x.Value != null && x.Value is byte[]) ? Encoding.UTF8.GetString(x.Value as byte[]) : null);
             }
 
             return allHeaders;

@@ -117,6 +117,23 @@ Tasks
 | DeliveryTag | ulong | | |
 
 
+## MessageCount
+
+### Task Parameters
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| QueueName | string | Name of the queue | sampleQueue |
+| HostName | string | Address of the server hosting RabbitMQ | localhost or amqp://user:password@hostname:port/vhost |
+| ConnectWithURI | bool | If true, hostname should be an URI | If false, use hostname only |
+
+### Output Parameters
+
+| Property             | Type                 | Description                          | Example |
+| ---------------------| ---------------------| ------------------------------------ | ----- |
+| | uint | Count of messages in the queue | |
+
+
 ## AcknowledgeMessage
 
 ### Task Parameters
@@ -175,3 +192,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.6.1 | Multitarget conversion and new CI. |
 | 1.6.2 | Badges added to README. |
 | 1.6.3 | Updated README with correct buld/test/pack instructions. |
+| 1.6.4 | Fix crashes while reading message without headers and headers not a string type. |
+| 1.7.0 | Added MessageCount task. |
