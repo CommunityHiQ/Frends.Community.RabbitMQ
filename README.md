@@ -175,3 +175,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.6.1 | Multitarget conversion and new CI. |
 | 1.6.2 | Badges added to README. |
 | 1.6.3 | Updated README with correct buld/test/pack instructions. |
+| 1.6.4 | Added System.Memory NuGet dependency to fix issue with Frends 5.7. |
