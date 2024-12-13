@@ -176,3 +176,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.6.2 | Badges added to README. |
 | 1.6.3 | Updated README with correct buld/test/pack instructions. |
 | 1.6.4 | Added System.Memory NuGet dependency to fix issue with Frends 5.7. |
+| 2.0.0 | Updated frameworks to include .NET 6.0 and .NET 8.0. Updated packages: System.Memory from 4.5.4 to 4.6.0 and System.ComponentModel.Annotations from 4.7.0 to 5.0.0. Breaking version change because of major version updates in packages and framework additions. |
